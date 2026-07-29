@@ -1,0 +1,23 @@
+import Navbar from "../components/Navbar";
+
+export default function Home() {
+  return (
+    <>
+      <Navbar />
+
+      <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center">
+        <h1 className="text-6xl font-bold text-yellow-400">
+          مقهى همسة مزاج
+        </h1>
+
+        <p className="mt-6 text-xl">
+          استمتع بأجمل الأوقات مع القهوة والمباريات
+        </p>
+
+        <button className="mt-10 rounded-lg bg-yellow-500 px-8 py-3 text-black font-bold hover:bg-yellow-400">
+          اطلب الآن
+        </button>
+      </main>
+    </>
+  );
+}
