@@ -1,28 +1,97 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTable } from "@/context/TableContext";
+import {
+  createServiceRequest,
+  type ServiceType,
+} from "@/modules/service";
+import {
+  BellRing,
+  UserRound,
+  Coffee,
+  Receipt,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
+
+const SERVICES = {
+  call_waiter: {
+    title: "استدعاء النادل",
+    icon: UserRound,
+  },
+  waiter: {
+    title: "استدعاء النادل",
+    icon: UserRound,
+  },
+  water: {
+    title: "طلب ماء",
+    icon: Coffee,
+  },
+  charcoal: {
+    title: "طلب فحم",
+    icon: Sparkles,
+  },
+  bill: {
+    title: "طلب الحساب",
+    icon: Receipt,
+  },
+  clean_table: {
+    title: "تنظيف الطاولة",
+    icon: BellRing,
+  },
+};
+
+const SERVICE_TYPES: Record<string, ServiceType> = {
+  call_waiter: "call_waiter",
+  waiter: "call_waiter",
+  water: "water",
+  charcoal: "charcoal",
+  bill: "bill",
+  clean_table: "clean_table",
+};
 
 export default function ServicePage() {
   const { hasTable, tableNumber } = useTable();
   const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const service =
+  const serviceKey =
     searchParams.get("type") || "call_waiter";
 
-  async function sendRequest(type: string) {
+  const service = useMemo(() => {
+    return (
+      SERVICES[serviceKey as keyof typeof SERVICES] ??
+      SERVICES.call_waiter
+    );
+  }, [serviceKey]);
+
+  const Icon = service.icon;
+
+  async function sendRequest() {
     if (!hasTable || !tableNumber) return;
 
     setLoading(true);
 
     try {
-      // سيتم ربطه مع Supabase لاحقاً
-      alert(
-        `تم إرسال الطلب\n\nالطاولة: ${tableNumber}\nالخدمة: ${type}`
+      await createServiceRequest(
+        tableNumber,
+        SERVICE_TYPES[serviceKey] ?? "call_waiter"
       );
+
+      alert(
+        `تم إرسال الطلب بنجاح
+
+رقم الطاولة: ${tableNumber}
+
+الخدمة:
+${service.title}`
+      );
+
+      setSuccess(true);
     } finally {
       setLoading(false);
     }
@@ -30,53 +99,107 @@ export default function ServicePage() {
 
   if (!hasTable) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-yellow-400">
-            هذه الصفحة متاحة فقط لعملاء الطاولات
+      <main className="flex min-h-screen items-center justify-center bg-black px-6">
+
+        <div className="max-w-md rounded-3xl border border-yellow-500/20 bg-zinc-900 p-10 text-center">
+
+          <BellRing
+            size={70}
+            className="mx-auto mb-6 text-yellow-400"
+          />
+
+          <h1 className="text-3xl font-black text-yellow-400">
+            هذه الصفحة مخصصة لعملاء الطاولات
           </h1>
 
-          <p className="mt-4 text-gray-400">
-            يرجى الدخول باستخدام QR الخاص بالطاولة.
+          <p className="mt-5 leading-8 text-zinc-400">
+            للوصول إلى خدمات الطاولة يرجى مسح
+            QR الموجود على الطاولة.
           </p>
+
         </div>
+
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12">
-      <div className="mx-auto max-w-2xl">
+    <main className="min-h-screen bg-black py-16 px-6">
 
-        <h1 className="text-4xl font-bold text-yellow-400 text-center">
-          خدمات الطاولة
-        </h1>
+      <div className="mx-auto max-w-3xl">
 
-        <p className="text-center mt-3 text-gray-300">
-          الطاولة رقم {tableNumber}
-        </p>
+        <div className="mb-12 text-center">
 
-        <div className="mt-10 rounded-3xl bg-zinc-900 p-8">
+          <div className="mb-5 inline-flex rounded-full bg-yellow-500/10 p-5">
 
-          <p className="text-center text-xl mb-8">
-            الخدمة المطلوبة:
-          </p>
+            <Icon
+              size={42}
+              className="text-yellow-400"
+            />
 
-          <div className="text-center text-3xl font-bold text-yellow-400 mb-10">
-            {service}
           </div>
 
-          <button
-            onClick={() => sendRequest(service)}
-            disabled={loading}
-            className="w-full rounded-2xl bg-yellow-500 py-4 text-xl font-bold text-black hover:bg-yellow-400 transition disabled:opacity-50"
-          >
-            {loading ? "جارٍ الإرسال..." : "إرسال الطلب"}
-          </button>
+          <h1 className="text-5xl font-black text-white">
+            خدمات الطاولة
+          </h1>
+
+          <p className="mt-4 text-lg text-zinc-400">
+            الطاولة رقم{" "}
+            <span className="font-bold text-yellow-400">
+              {tableNumber}
+            </span>
+          </p>
+
+        </div>
+
+        <div className="rounded-[32px] border border-yellow-500/20 bg-zinc-900 p-10 shadow-2xl">
+
+          <div className="mb-10 text-center">
+
+            <p className="text-zinc-400">
+              الخدمة المختارة
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black text-yellow-400">
+              {service.title}
+            </h2>
+
+          </div>
+
+          {success ? (
+            <div className="rounded-3xl border border-green-500/30 bg-green-500/10 p-10 text-center">
+
+              <CheckCircle2
+                size={70}
+                className="mx-auto mb-5 text-green-400"
+              />
+
+              <h3 className="text-3xl font-black text-white">
+                تم إرسال الطلب
+              </h3>
+
+              <p className="mt-4 leading-8 text-zinc-300">
+                تم إشعار موظفي المقهى وسيتم
+                تلبية طلبكم في أقرب وقت.
+              </p>
+
+            </div>
+          ) : (
+            <button
+              onClick={sendRequest}
+              disabled={loading}
+              className="w-full rounded-2xl bg-yellow-500 py-5 text-2xl font-black text-black transition hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading
+                ? "جارٍ إرسال الطلب..."
+                : "إرسال الطلب"}
+            </button>
+          )}
 
         </div>
 
       </div>
+
     </main>
   );
 }

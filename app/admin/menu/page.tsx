@@ -170,6 +170,7 @@ export default function AdminMenuPage() {
                   <td className="p-4">
                     <img
                       src={item.image_url}
+                      alt={item.name_ar}
                       className="w-16 h-16 rounded-lg object-cover"
                     />
                   </td>

@@ -3,64 +3,41 @@ import { Order, OrderItem } from "../types/order";
 
 export async function createOrder(
   tableNumber: number,
-  items: OrderItem[]
+  items: OrderItem[],
+  clientRequestId: string
 ): Promise<Order> {
-  // حساب الإجمالي
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  // البحث عن معرف الطاولة الحقيقي
-  const { data: table, error: tableError } = await supabase
-    .from("tables")
-    .select("id")
-    .eq("table_number", tableNumber)
-    .single();
-
-  if (tableError || !table) {
-    throw new Error("الطاولة غير موجودة");
+  if (!items.length) {
+    throw new Error("السلة فارغة");
   }
 
-  // إنشاء الطلب
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      table_id: table.id,
-      total_price: total,
-      status: "pending",
-    })
-    .select()
-    .single();
-
-  if (orderError) {
-    throw orderError;
-  }
-
-  // إضافة أصناف الطلب
-  const orderItems = items.map((item) => ({
-    order_id: order.id,
+  const payload = items.map((item) => ({
     menu_id: Number(item.id),
     quantity: item.quantity,
-    price: item.price,
-    total_price: item.price * item.quantity,
-    notes: null,
   }));
 
-  const { error: itemsError } = await supabase
-    .from("order_items")
-    .insert(orderItems);
+  const { data, error } = await supabase.rpc(
+    "create_order_with_items",
+    {
+      p_table_number: tableNumber,
+      p_client_request_id: clientRequestId,
+      p_items: payload,
+    }
+  );
 
-  if (itemsError) {
-    throw itemsError;
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("لم يتم استلام بيانات الطلب");
   }
 
   return {
-    id: order.id,
+    id: data.order_id,
     tableNumber,
     items,
-    total,
-    status: order.status,
-    createdAt: order.created_at,
+    total: Number(data.total_price),
+    status: data.status,
+    createdAt: data.created_at,
   };
 }

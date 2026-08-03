@@ -26,22 +26,31 @@ export function CartProvider({
   children: ReactNode;
 }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("cart");
+    let savedItems: CartItem[] = [];
 
     if (saved) {
       try {
-        setItems(JSON.parse(saved));
+        savedItems = JSON.parse(saved);
       } catch {
         localStorage.removeItem("cart");
       }
     }
+
+    queueMicrotask(() => {
+      setItems(savedItems);
+      setHasHydrated(true);
+    });
   }, []);
 
   useEffect(() => {
+    if (!hasHydrated) return;
+
     localStorage.setItem("cart", JSON.stringify(items));
-  }, [items]);
+  }, [items, hasHydrated]);
 
   function addToCart(item: CartItem) {
     setItems((current) => {

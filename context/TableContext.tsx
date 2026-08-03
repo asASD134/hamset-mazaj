@@ -11,11 +11,13 @@ import {
 type TableContextType = {
   tableNumber: number | null;
   hasTable: boolean;
+  setTableNumber: React.Dispatch<React.SetStateAction<number | null>>;
 };
 
 const TableContext = createContext<TableContextType>({
   tableNumber: null,
   hasTable: false,
+  setTableNumber: () => {},
 });
 
 export function TableProvider({
@@ -41,6 +43,7 @@ export function TableProvider({
       value={{
         tableNumber,
         hasTable: tableNumber !== null,
+        setTableNumber,
       }}
     >
       {children}

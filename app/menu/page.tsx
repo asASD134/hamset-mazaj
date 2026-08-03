@@ -15,66 +15,110 @@ export default function MenuPage() {
   const { hasTable, tableNumber } = useTable();
 
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadMenu() {
       const data = await getMenuCategories();
       setMenuCategories(data);
+      setLoading(false);
     }
 
     loadMenu();
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black py-16 text-white">
+    <main className="min-h-screen bg-black text-white">
 
-      <div className="mx-auto max-w-7xl px-6">
+      <section className="relative overflow-hidden border-b border-yellow-500/20 bg-gradient-to-b from-[#181818] via-[#111111] to-black py-24">
 
-        {hasTable && (
-          <div className="mb-10 rounded-3xl border border-yellow-500 bg-yellow-500/10 p-6 text-center">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.08),transparent_60%)]" />
 
-            <h2 className="text-3xl font-bold text-yellow-400">
-              🍽️ الطلب للطاولة رقم {tableNumber}
-            </h2>
+        <div className="relative mx-auto max-w-7xl px-6 text-center">
 
-            <p className="mt-2 text-gray-300">
-              اختر الأصناف التي ترغب بها ثم أضفها إلى السلة.
-            </p>
+          {hasTable && (
+            <div className="mx-auto mb-10 inline-flex rounded-full border border-yellow-500/30 bg-yellow-500/10 px-8 py-4">
 
-          </div>
-        )}
+              <span className="text-lg font-bold text-yellow-400">
+                🍽️ الطلب للطاولة رقم {tableNumber}
+              </span>
 
-        <SectionTitle
-          title="☕ قائمة همسة مزاج"
-          subtitle="القهوة • الشيشة • العصائر • الحلويات • المشروبات الساخنة والباردة"
-        />
-
-        {menuCategories.map((category) => (
-          <section
-            key={category.id}
-            className="mb-16"
-          >
-            <div className="mb-8 flex items-center gap-4">
-              <div className="h-10 w-1 rounded-full bg-yellow-500" />
-
-              <h2 className="text-3xl font-bold text-yellow-400">
-                {category.title}
-              </h2>
             </div>
+          )}
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {category.items.map((item) => (
-                <MenuCard
-                  key={item.id}
-                  item={item}
-                />
-              ))}
+          <h1 className="text-5xl font-black text-white md:text-6xl">
+            قائمة همسة مزاج
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-9 text-zinc-400">
+            استمتع بأفضل القهوة المختصة، الحلويات،
+            المشروبات الساخنة والباردة،
+            الشيشة، والعصائر الطازجة.
+          </p>
+
+        </div>
+
+      </section>
+
+      <section className="py-20">
+
+        <div className="mx-auto max-w-7xl px-6">
+
+          <SectionTitle
+            title="المنيو"
+            subtitle="اختر ما يناسب ذوقك ثم أضفه إلى السلة."
+          />
+
+          {loading ? (
+            <div className="py-32 text-center">
+
+              <div className="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-yellow-500 border-t-transparent" />
+
+              <p className="text-zinc-400">
+                جاري تحميل قائمة الطعام...
+              </p>
+
             </div>
+          ) : (
+            menuCategories.map((category) => (
+              <section
+                key={category.id}
+                className="mb-24"
+              >
+                <div className="mb-10 flex items-center gap-5">
 
-          </section>
-        ))}
+                  <div className="h-12 w-2 rounded-full bg-yellow-500" />
 
-      </div>
+                  <div>
+
+                    <h2 className="text-4xl font-black text-yellow-400">
+                      {category.title}
+                    </h2>
+
+                    <div className="mt-2 h-[2px] w-24 rounded-full bg-yellow-500/40" />
+
+                  </div>
+
+                </div>
+
+                <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
+
+                  {category.items.map((item) => (
+                    <MenuCard
+                      key={item.id}
+                      item={item}
+                    />
+                  ))}
+
+                </div>
+
+              </section>
+            ))
+          )}
+
+        </div>
+
+      </section>
 
     </main>
   );

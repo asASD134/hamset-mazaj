@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
 import { CartProvider } from "@/context/CartContext";
 import { TableProvider } from "@/context/TableContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "مقهى همسة مزاج",
-  description: "قهوة • مزاج • جلسات فاخرة",
+  title: "همسة مزاج | Hamset Mazaj",
+  description:
+    "Hamset Mazaj Coffee & Lounge - Premium Coffee, Desserts, and Lounge Experience",
+  icons: {
+    icon: "/images/logo.png",
+    apple: "/images/logo.png",
+    shortcut: "/images/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -29,15 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#050505] text-white antialiased">
         <TableProvider>
           <CartProvider>
-            <Navbar />
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
 
-            {children}
+              <main className="flex-1 pt-32">
+                {children}
+              </main>
 
-            <Footer />
+              <Footer />
+            </div>
           </CartProvider>
         </TableProvider>
       </body>

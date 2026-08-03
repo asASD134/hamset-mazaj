@@ -106,7 +106,6 @@ export default function AdminDashboardPage() {
   return (
     <main className="min-h-screen bg-black text-white p-8">
       <div className="max-w-7xl mx-auto">
-
         <h1 className="text-4xl font-bold text-yellow-400 mb-10">
           لوحة التحكم
         </h1>
@@ -127,7 +126,6 @@ export default function AdminDashboardPage() {
             </div>
           ))}
         </div>
-
       </div>
     </main>
   );

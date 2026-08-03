@@ -12,12 +12,12 @@ import { supabase } from "@/lib/supabase";
 
 type Order = {
   id: number;
-  
   order_number: string;
   total_price: number;
   status: string;
   notes: string | null;
   created_at: string;
+  tables: { table_number: number } | null;
 };
 
 export default function AdminOrdersPage() {
@@ -27,7 +27,7 @@ export default function AdminOrdersPage() {
   async function loadOrders() {
     const { data, error } = await supabase
       .from("orders")
-      .select("*")
+      .select("*, tables(table_number)")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -49,7 +49,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     loadOrders();
 
-    const audio = new Audio("/sounds/notification.mp3");
+    const audio = new Audio("/sounds/new-order.mp3");
 
     const channel = supabase
       .channel("orders-live")
@@ -90,11 +90,8 @@ export default function AdminOrdersPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
-
       <div className="mx-auto max-w-7xl p-8">
-
         <div className="mb-10 flex items-center justify-between">
-
           <div>
             <h1 className="text-4xl font-bold text-yellow-400">
               شاشة الطلبات المباشرة
@@ -114,12 +111,10 @@ export default function AdminOrdersPage() {
               {orders.length}
             </div>
           </div>
-
         </div>
 
         {orders.length === 0 && (
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-16 text-center">
-
             <Bell
               size={70}
               className="mx-auto text-yellow-400"
@@ -132,31 +127,25 @@ export default function AdminOrdersPage() {
             <p className="mt-3 text-gray-400">
               سيتم عرض الطلبات الجديدة فور وصولها.
             </p>
-
           </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-
           {orders.map((order) => (
             <div
               key={order.id}
               className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
             >
               <div className="mb-5 flex items-center justify-between">
-
                 <div>
-
                   <div className="text-2xl font-bold text-yellow-400">
                     🪑 الطاولة {order.tables?.table_number}
                   </div>
 
                   <div className="mt-2 flex items-center gap-2 text-gray-400">
                     <Receipt size={18} />
-
                     #{order.order_number}
                   </div>
-
                 </div>
 
                 <span
@@ -170,11 +159,9 @@ export default function AdminOrdersPage() {
                     ? "تم التنفيذ"
                     : "قيد التنفيذ"}
                 </span>
-
               </div>
 
               <div className="space-y-3 text-lg">
-
                 <div className="flex justify-between">
                   <span className="text-gray-400">
                     الإجمالي
@@ -198,7 +185,6 @@ export default function AdminOrdersPage() {
                     {order.notes}
                   </div>
                 )}
-
               </div>
 
               {order.status !== "completed" && (
@@ -207,17 +193,13 @@ export default function AdminOrdersPage() {
                   className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-green-600 py-4 text-lg font-bold transition hover:bg-green-500"
                 >
                   <CheckCircle2 size={22} />
-
                   تم التنفيذ
                 </button>
               )}
             </div>
           ))}
-
         </div>
-
       </div>
-
     </main>
   );
 }

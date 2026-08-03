@@ -4,12 +4,6 @@ import { useEffect, useState } from "react";
 import CategoryForm from "./CategoryForm";
 import { updateCategory } from "./CategoryActions";
 
-interface Category {
-  id: number;
-  name_ar: string;
-  sort_order: number;
-}
-
 interface EditCategoryModalProps {
   open: boolean;
   category: any;
