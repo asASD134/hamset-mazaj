@@ -15,7 +15,7 @@ export default function ProductForm({
   setForm,
 }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid gap-5">
       <select
         value={form.categoryId}
         onChange={(e) =>
@@ -24,13 +24,16 @@ export default function ProductForm({
             categoryId: e.target.value,
           }))
         }
-        className="col-span-2 rounded-xl bg-zinc-800 p-3"
+        className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-3"
       >
         <option value="">اختر التصنيف</option>
 
         {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name_ar}
+          <option
+            key={category.id}
+            value={category.id}
+          >
+            {category.name}
           </option>
         ))}
       </select>
@@ -43,20 +46,8 @@ export default function ProductForm({
             nameAr: e.target.value,
           }))
         }
-        placeholder="الاسم بالعربية"
-        className="rounded-xl bg-zinc-800 p-3"
-      />
-
-      <input
-        value={form.nameEn}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            nameEn: e.target.value,
-          }))
-        }
-        placeholder="الاسم بالإنجليزية"
-        className="rounded-xl bg-zinc-800 p-3"
+        placeholder="اسم المنتج"
+        className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-3"
       />
 
       <input
@@ -69,23 +60,11 @@ export default function ProductForm({
           }))
         }
         placeholder="السعر"
-        className="rounded-xl bg-zinc-800 p-3"
-      />
-
-      <input
-        type="number"
-        value={form.calories}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            calories: e.target.value,
-          }))
-        }
-        placeholder="عدد السعرات"
-        className="rounded-xl bg-zinc-800 p-3"
+        className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-3"
       />
 
       <textarea
+        rows={4}
         value={form.descriptionAr}
         onChange={(e) =>
           setForm((prev) => ({
@@ -93,20 +72,8 @@ export default function ProductForm({
             descriptionAr: e.target.value,
           }))
         }
-        placeholder="الوصف بالعربية"
-        className="col-span-2 rounded-xl bg-zinc-800 p-3"
-      />
-
-      <textarea
-        value={form.descriptionEn}
-        onChange={(e) =>
-          setForm((prev) => ({
-            ...prev,
-            descriptionEn: e.target.value,
-          }))
-        }
-        placeholder="الوصف بالإنجليزية"
-        className="col-span-2 rounded-xl bg-zinc-800 p-3"
+        placeholder="الوصف"
+        className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-3"
       />
 
       <ProductImage

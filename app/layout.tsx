@@ -9,32 +9,19 @@ export const metadata: Metadata = {
   title: "همسة مزاج | Hamset Mazaj",
   description:
     "Hamset Mazaj Coffee & Lounge - Premium Coffee, Desserts, and Lounge Experience",
-  icons: {
-    icon: "/images/logo.png",
-    apple: "/images/logo.png",
-    shortcut: "/images/logo.png",
-  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className="min-h-screen bg-[#050505] text-white antialiased">
+    <html lang="ar" dir="rtl">
+      <body className="bg-[#050505] text-white">
         <TableProvider>
           <CartProvider>
-            <div className="flex min-h-screen flex-col">
-              <Navbar />
-
-              <main className="flex-1 pt-32">
-                {children}
-              </main>
-
-              <Footer />
-            </div>
+            {children}
           </CartProvider>
         </TableProvider>
       </body>

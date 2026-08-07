@@ -1,25 +1,24 @@
 export interface Category {
-  id: number;
-  name_ar: string;
+  id: string;
+  name: string;
 }
 
 export interface MenuItem {
-  id: number;
-  category_id: number;
+  id: string;
 
-  name_ar: string;
-  name_en: string;
+  category: string;
 
-  description_ar: string;
-  description_en: string;
+  name: string;
+
+  description: string;
 
   price: number;
-  calories: number;
 
-  image_url: string;
+  image: string;
 
-  is_available: boolean;
-  is_featured: boolean;
+  available: boolean;
+
+  featured: boolean;
 
   sort_order: number;
 }
