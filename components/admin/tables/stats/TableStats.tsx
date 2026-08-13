@@ -12,22 +12,22 @@ export default function TableStats({
   const total = tables.length;
 
   const available = tables.filter(
-    (t) => t.status === "available"
+    (table) => table.status === "available"
   ).length;
 
   const occupied = tables.filter(
-    (t) => t.status === "occupied"
+    (table) => table.status === "occupied"
   ).length;
 
   const reserved = tables.filter(
-    (t) => t.status === "reserved"
+    (table) => table.status === "reserved"
   ).length;
 
   const disabled = tables.filter(
-    (t) => t.status === "disabled"
+    (table) => table.status === "disabled"
   ).length;
 
-  const cards = [
+  const stats = [
     {
       title: "إجمالي الطاولات",
       value: total,
@@ -56,21 +56,21 @@ export default function TableStats({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-5">
-      {cards.map((card) => (
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      {stats.map((stat) => (
         <div
-          key={card.title}
+          key={stat.title}
           className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-5 text-center"
         >
           <p className="text-sm text-zinc-400">
-            {card.title}
+            {stat.title}
           </p>
 
-          <h2
-            className={`mt-2 text-3xl font-bold ${card.color}`}
+          <p
+            className={`mt-2 text-4xl font-bold ${stat.color}`}
           >
-            {card.value}
-          </h2>
+            {stat.value}
+          </p>
         </div>
       ))}
     </div>

@@ -48,11 +48,8 @@ export default function ServiceQuickActions() {
 
   return (
     <section className="bg-[#0b0b0b] py-20">
-
       <div className="mx-auto max-w-7xl px-6">
-
         <div className="mb-14 text-center">
-
           <div className="mb-5 inline-flex rounded-full bg-yellow-500/10 p-4 text-yellow-400">
             <BellRing size={34} />
           </div>
@@ -64,11 +61,9 @@ export default function ServiceQuickActions() {
           <p className="mt-4 text-zinc-400">
             اختر الخدمة المطلوبة وسيتم إشعار الموظف مباشرة.
           </p>
-
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-
           {services.map((service) => {
             const Icon = service.icon;
 
@@ -91,15 +86,11 @@ export default function ServiceQuickActions() {
                 <p className="text-zinc-400">
                   اضغط لإرسال الطلب مباشرة إلى الموظف.
                 </p>
-
               </Link>
             );
           })}
-
         </div>
-
       </div>
-
     </section>
   );
 }

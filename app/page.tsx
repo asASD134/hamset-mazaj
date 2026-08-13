@@ -25,7 +25,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      <main className="bg-black text-white pt-32">
+      <main className="bg-black pt-32 text-white">
         <Hero />
 
         {hasTable && (
@@ -41,8 +41,8 @@ export default function Home() {
                 </p>
 
                 <p className="mx-auto mt-3 max-w-2xl text-base text-black/80">
-                  يمكنك الآن تصفح المنيو، إرسال الطلبات، أو استخدام خدمات
-                  الطاولة مباشرة.
+                  يمكنك الآن تصفح المنيو، إرسال الطلبات، أو
+                  استخدام خدمات الطاولة مباشرة.
                 </p>
 
                 <div className="mt-10 flex flex-wrap justify-center gap-5">
@@ -68,9 +68,13 @@ export default function Home() {
         {hasTable && <ServiceQuickActions />}
 
         <FeaturedProducts />
+
         <WhyChoose />
+
         <GalleryPreview />
+
         <Testimonials />
+
         <ContactSection />
       </main>
 

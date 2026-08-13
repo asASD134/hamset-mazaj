@@ -7,8 +7,10 @@ interface Props {
   availableTables: number;
   occupiedTables: number;
   totalOrders: number;
+  pendingOrders: number;
+  serviceRequests: number;
   todaySales: number;
-  totalCustomers: number;
+  totalProducts: number;
 }
 
 export default function DashboardCards({
@@ -16,8 +18,10 @@ export default function DashboardCards({
   availableTables,
   occupiedTables,
   totalOrders,
+  pendingOrders,
+  serviceRequests,
   todaySales,
-  totalCustomers,
+  totalProducts,
 }: Props) {
   const cards = [
     {
@@ -45,21 +49,33 @@ export default function DashboardCards({
       color: "text-blue-400",
     },
     {
-      title: "مبيعات اليوم",
-      value: `${todaySales} ر.س`,
+      title: "طلبات قيد الانتظار",
+      value: pendingOrders,
+      icon: "⏳",
+      color: "text-orange-400",
+    },
+    {
+      title: "طلبات الخدمة",
+      value: serviceRequests,
+      icon: "🔔",
+      color: "text-purple-400",
+    },
+    {
+      title: "إجمالي المبيعات",
+      value: `${todaySales.toFixed(2)} ر.س`,
       icon: "💰",
       color: "text-emerald-400",
     },
     {
-      title: "عدد العملاء",
-      value: totalCustomers,
-      icon: "👥",
-      color: "text-purple-400",
+      title: "منتجات المنيو",
+      value: totalProducts,
+      icon: "☕",
+      color: "text-yellow-400",
     },
   ];
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
         <StatCard
           key={card.title}

@@ -3,40 +3,47 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, ShoppingBag, Bell } from "lucide-react";
+
 import { useTable } from "@/context/TableContext";
+import SiteName from "@/components/SiteName";
+import { useCafeSettings } from "@/context/CafeSettingsContext";
 
 export default function Hero() {
   const { hasTable, tableNumber } = useTable();
+  const { settings } = useCafeSettings();
 
   const withTable = (path: string) =>
     hasTable ? `${path}?table=${tableNumber}` : path;
 
+  const cafeName =
+    settings.cafe_name || "همسة مزاج";
+
+  const logoUrl =
+    settings.logo_url || "/images/logo.png";
+
+  const description =
+    settings.description ||
+    "تجربة فاخرة تجمع بين القهوة المختصة، الشيشة الفاخرة، الحلويات، المشروبات، ومتابعة أهم المباريات داخل أجواء راقية.";
+
   return (
     <section className="relative h-[calc(100vh-96px)] overflow-hidden">
-
-      {/* Background */}
-
       <Image
         src="/images/cafe.jpg"
-        alt="Hamset Mazaj"
+        alt={`مقهى ${cafeName}`}
         fill
         priority
         className="object-cover object-center"
+        sizes="100vw"
       />
-
-      {/* Overlay */}
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-[#0d0d0d]" />
 
-      {/* Hero Content */}
-
       <div className="relative z-10 flex h-full w-full items-center justify-center">
-
-        <div className="flex w-full max-w-7xl flex-col items-center px-6 text-center translate-y-16">
+        <div className="flex w-full max-w-7xl translate-y-16 flex-col items-center px-6 text-center">
 
           <Image
-            src="/images/logo.png"
-            alt="Hamset Mazaj Logo"
+            src={logoUrl}
+            alt={cafeName}
             width={170}
             height={170}
             priority
@@ -48,15 +55,11 @@ export default function Hero() {
           </span>
 
           <h1 className="mt-6 text-5xl font-black text-white md:text-7xl">
-            همسة مزاج
+            <SiteName />
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300 md:text-2xl">
-            تجربة فاخرة تجمع بين القهوة المختصة،
-            الشيشة الفاخرة،
-            الحلويات،
-            المشروبات،
-            ومتابعة أهم المباريات داخل أجواء راقية.
+            {description}
           </p>
 
           {hasTable && (
@@ -68,7 +71,6 @@ export default function Hero() {
           )}
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-5">
-
             <Link
               href={withTable("/menu")}
               className="flex items-center gap-3 rounded-2xl bg-yellow-500 px-9 py-4 text-lg font-bold text-black transition duration-300 hover:scale-105 hover:bg-yellow-400"
@@ -86,9 +88,9 @@ export default function Hero() {
                 خدمات الطاولة
               </Link>
             )}
-                      </div>
+          </div>
 
-          <div className="mt-20 flex flex-col items-center animate-bounce text-zinc-400">
+          <div className="mt-20 flex animate-bounce flex-col items-center text-zinc-400">
             <ChevronDown size={30} />
 
             <span className="mt-2 text-sm">
@@ -97,9 +99,7 @@ export default function Hero() {
           </div>
 
         </div>
-
       </div>
-
     </section>
   );
 }

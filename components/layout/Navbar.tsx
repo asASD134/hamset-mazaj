@@ -13,43 +13,70 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+
 import { useTable } from "@/context/TableContext";
+import SiteName from "@/components/SiteName";
+import { useCafeSettings } from "@/context/CafeSettingsContext";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { hasTable, tableNumber } = useTable();
   const [open, setOpen] = useState(false);
+  const { settings } = useCafeSettings();
 
   const withTable = (path: string) =>
     hasTable ? `${path}?table=${tableNumber}` : path;
 
+  const logoUrl =
+    settings.logo_url || "/images/logo.png";
+
+  const cafeName =
+    settings.cafe_name || "همسة مزاج";
+
   const navItems = [
-    { href: "/", label: "الرئيسية", icon: House },
-    { href: "/menu", label: "المنيو", icon: UtensilsCrossed },
-    { href: "/matches", label: "المباريات", icon: Trophy },
-    { href: "/gallery", label: "المعرض", icon: Images },
-    { href: "/contact", label: "تواصل", icon: Phone },
+    {
+      href: "/",
+      label: "الرئيسية",
+      icon: House,
+    },
+    {
+      href: "/menu",
+      label: "المنيو",
+      icon: UtensilsCrossed,
+    },
+    {
+      href: "/matches",
+      label: "المباريات",
+      icon: Trophy,
+    },
+    {
+      href: "/gallery",
+      label: "المعرض",
+      icon: Images,
+    },
+    {
+      href: "/contact",
+      label: "تواصل",
+      icon: Phone,
+    },
   ];
 
   return (
     <>
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-yellow-500/20 bg-[#090909]/95 backdrop-blur-xl shadow-2xl">
-
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-yellow-500/20 bg-[#090909]/95 shadow-2xl backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-6">
-
           <div className="grid h-24 grid-cols-[1fr_auto_1fr] items-center">
 
             {/* Right Menu */}
 
-            <div className="hidden lg:flex items-center justify-end gap-2">
-
+            <div className="hidden items-center justify-end gap-2 lg:flex">
               {navItems.slice(0, 2).map((item) => {
-
                 const Icon = item.icon;
 
                 const active =
                   pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href));
+                  (item.href !== "/" &&
+                    pathname.startsWith(item.href));
 
                 return (
                   <Link
@@ -65,9 +92,7 @@ export default function Navbar() {
                     {item.label}
                   </Link>
                 );
-
               })}
-
             </div>
 
             {/* Logo */}
@@ -76,10 +101,9 @@ export default function Navbar() {
               href={withTable("/")}
               className="flex flex-col items-center justify-center"
             >
-
               <Image
-                src="/images/logo.png"
-                alt="Hamset Mazaj"
+                src={logoUrl}
+                alt={cafeName}
                 width={58}
                 height={58}
                 priority
@@ -87,26 +111,24 @@ export default function Navbar() {
               />
 
               <h1 className="mt-1 text-xl font-black text-yellow-400">
-                همسة مزاج
+                <SiteName />
               </h1>
 
               <p className="text-[10px] uppercase tracking-[5px] text-zinc-400">
                 Coffee & Lounge
               </p>
-
             </Link>
 
             {/* Left Menu */}
 
-            <div className="hidden lg:flex items-center justify-start gap-2">
-
+            <div className="hidden items-center justify-start gap-2 lg:flex">
               {navItems.slice(2).map((item) => {
-
                 const Icon = item.icon;
 
                 const active =
                   pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href));
+                  (item.href !== "/" &&
+                    pathname.startsWith(item.href));
 
                 return (
                   <Link
@@ -128,41 +150,45 @@ export default function Navbar() {
             {/* Mobile Button */}
 
             <button
+              type="button"
               onClick={() => setOpen(true)}
+              aria-label="فتح القائمة"
               className="justify-self-end rounded-xl border border-yellow-500/20 bg-[#151515] p-3 text-yellow-400 lg:hidden"
             >
               <Menu size={26} />
             </button>
-
           </div>
-
         </div>
-
       </nav>
-            {/* Mobile Menu */}
+
+      {/* Mobile Menu */}
 
       <div
         className={`fixed inset-0 z-[60] transition-all duration-300 ${
-          open ? "visible bg-black/80 backdrop-blur-md" : "invisible"
+          open
+            ? "visible bg-black/80 backdrop-blur-md"
+            : "invisible pointer-events-none"
         }`}
       >
         <div
           className={`absolute right-0 top-0 h-full w-80 border-l border-yellow-500/20 bg-[#090909] transition-transform duration-300 ${
-            open ? "translate-x-0" : "translate-x-full"
+            open
+              ? "translate-x-0"
+              : "translate-x-full"
           }`}
         >
           <div className="flex items-center justify-between border-b border-yellow-500/20 p-6">
             <div>
               <Image
-                src="/images/logo.png"
-                alt="Hamset Mazaj"
+                src={logoUrl}
+                alt={cafeName}
                 width={60}
                 height={60}
                 className="mb-3 object-contain"
               />
 
               <h2 className="text-xl font-black text-yellow-400">
-                همسة مزاج
+                <SiteName />
               </h2>
 
               <p className="text-[10px] uppercase tracking-[5px] text-zinc-400">
@@ -171,7 +197,9 @@ export default function Navbar() {
             </div>
 
             <button
+              type="button"
               onClick={() => setOpen(false)}
+              aria-label="إغلاق القائمة"
               className="rounded-lg bg-zinc-800 p-2"
             >
               <X size={22} />
@@ -184,7 +212,8 @@ export default function Navbar() {
 
               const active =
                 pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+                (item.href !== "/" &&
+                  pathname.startsWith(item.href));
 
               return (
                 <Link

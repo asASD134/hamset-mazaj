@@ -18,9 +18,20 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+    });
+
+    console.log("LOGIN RESULT", {
+      hasSession: !!data?.session,
+      userId: data?.session?.user?.id ?? null,
+      error: error
+        ? {
+            message: error.message,
+            code: error.code,
+          }
+        : null,
     });
 
     setLoading(false);
@@ -30,8 +41,31 @@ export default function LoginPage() {
       return;
     }
 
+    if (!data?.session) {
+      setError("فشل تسجيل الدخول: لم يتم إنشاء الجلسة.");
+      return;
+    }
+
+    // Verify session is persisted in the browser client before redirecting
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+      console.log("LOGIN SESSION AFTER", {
+        hasSession: !!sessionData?.session,
+        userId: sessionData?.session?.user?.id ?? null,
+      });
+
+      if (!sessionData?.session) {
+        setError("فشل تسجيل الدخول: الجلسة غير موجودة بعد المصادقة.");
+        return;
+      }
+    } catch (err: any) {
+      console.error("GET SESSION AFTER LOGIN ERROR", err);
+      setError("فشل التحقق من الجلسة بعد تسجيل الدخول.");
+      return;
+    }
+
     router.push("/admin");
-    router.refresh();
   }
 
   return (

@@ -1,9 +1,13 @@
+"use client";
+
+import SiteName from "@/components/SiteName";
+
 export default function WhyChoose() {
   return (
     <section className="py-16 bg-zinc-950 px-6">
 
       <h2 className="text-4xl text-yellow-400 font-bold text-center mb-10">
-        لماذا تختار همسة مزاج؟
+        لماذا تختار <SiteName />؟
       </h2>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">

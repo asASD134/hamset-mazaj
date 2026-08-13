@@ -1,3 +1,6 @@
+import Image from "next/image";
+import getCafeSettings from "@/lib/getCafeSettings";
+
 const images = [
   {
     src: "/images/gallery1.jpg",
@@ -21,64 +24,62 @@ const images = [
   },
   {
     src: "/images/gallery6.jpg",
-    title: "همسة مزاج",
+    title: "أجواء المقهى",
   },
 ];
 
-export default function GalleryPage() {
-  return (
-    <main className="min-h-screen bg-black text-white">
+export default async function GalleryPage() {
+  const settings = await getCafeSettings();
 
-      {/* عنوان الصفحة */}
-      <section className="py-14 text-center">
-        <h1 className="text-5xl font-bold text-yellow-400 mb-4">
-          📸 معرض همسة مزاج
+  const cafeName =
+    settings.cafe_name || "همسة مزاج";
+
+  return (
+    <main
+      dir="rtl"
+      className="min-h-screen bg-black text-white"
+    >
+      <section className="px-6 py-14 text-center">
+        <h1 className="mb-4 text-5xl font-bold text-yellow-400">
+          📸 معرض {cafeName}
         </h1>
 
-        <p className="text-gray-300 max-w-2xl mx-auto">
-          استمتع بجولة داخل مقهى همسة مزاج وشاهد أجواء القهوة والجلسات
-          الراقية التي تنتظرك.
+        <p className="mx-auto max-w-2xl text-gray-300">
+          استمتع بجولة داخل مقهى {cafeName} وشاهد أجواء
+          القهوة والجلسات الراقية التي تنتظرك.
         </p>
       </section>
 
-      {/* الصور */}
-      <section className="max-w-7xl mx-auto px-6 pb-16">
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-
-          {images.map((image, index) => (
-
+      <section className="mx-auto max-w-7xl px-6 pb-16">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {images.map((image) => (
             <div
-              key={index}
-              className="bg-zinc-900 rounded-3xl overflow-hidden border border-yellow-500/20 hover:border-yellow-400 transition duration-300 hover:-translate-y-2"
+              key={image.src}
+              className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-zinc-900 transition duration-300 hover:-translate-y-2 hover:border-yellow-400"
             >
-
-              <img
-                src={image.src}
-                alt={image.title}
-                className="w-full h-72 object-cover"
-              />
+              <div className="relative h-72 overflow-hidden">
+                <Image
+                  src={image.src}
+                  alt={`${image.title} - ${cafeName}`}
+                  fill
+                  className="object-cover transition duration-500 hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              </div>
 
               <div className="p-5">
-
-                <h2 className="text-xl font-bold text-yellow-400 mb-2">
+                <h2 className="mb-2 text-xl font-bold text-yellow-400">
                   {image.title}
                 </h2>
 
-                <p className="text-gray-400 text-sm">
-                  لحظات جميلة داخل مقهى همسة مزاج.
+                <p className="text-sm text-gray-400">
+                  لحظات جميلة داخل مقهى {cafeName}.
                 </p>
-
               </div>
-
             </div>
-
           ))}
-
         </div>
-
       </section>
-
     </main>
   );
 }

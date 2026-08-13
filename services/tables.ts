@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+
 import {
   Table,
   CreateTable,
@@ -7,27 +8,39 @@ import {
 
 const TABLE_NAME = "tables";
 
+function mapTable(item: any): Table {
+  return {
+    id: String(item.id),
+
+    number: Number(item.table_number),
+
+    name:
+      item.table_name ||
+      `الطاولة ${item.table_number}`,
+
+    seats: Number(item.seats ?? 4),
+
+    status: item.status ?? "available",
+
+    qr_code: item.qr_code ?? null,
+
+    created_at: item.created_at ?? "",
+  };
+}
+
 export async function getTables(): Promise<Table[]> {
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select("*")
-    .order("table_number", { ascending: true });
+    .order("table_number", {
+      ascending: true,
+    });
 
   if (error) {
     throw error;
   }
 
-  return (
-    (data ?? []).map((item: any) => ({
-      id: String(item.id),
-      number: item.table_number,
-      name: item.table_name,
-      seats: 4,
-      status: item.status,
-      qr_code: item.qr_code,
-      created_at: item.created_at,
-    })) as Table[]
-  );
+  return (data ?? []).map(mapTable);
 }
 
 export async function getTable(
@@ -39,47 +52,60 @@ export async function getTable(
     .eq("id", id)
     .single();
 
-  if (error || !data) {
-    return null;
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+
+    throw error;
   }
 
-  return {
-    id: String(data.id),
-    number: data.table_number,
-    name: data.table_name,
-    seats: 4,
-    status: data.status,
-    qr_code: data.qr_code,
-    created_at: data.created_at,
-  };
+  return mapTable(data);
 }
 
 export async function createTable(
   table: CreateTable
 ): Promise<Table> {
+  if (
+    !Number.isInteger(table.number) ||
+    table.number <= 0
+  ) {
+    throw new Error(
+      "رقم الطاولة غير صحيح."
+    );
+  }
+
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .insert({
       table_number: table.number,
-      table_name: table.name,
-      status: table.status ?? "available",
+
+      table_name:
+        table.name.trim() ||
+        `الطاولة ${table.number}`,
+
+      seats:
+        table.seats > 0
+          ? table.seats
+          : 4,
+
+      status:
+        table.status ?? "available",
     })
-    .select()
+    .select("*")
     .single();
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        "رقم الطاولة مستخدم بالفعل."
+      );
+    }
+
     throw error;
   }
 
-  return {
-    id: String(data.id),
-    number: data.table_number,
-    name: data.table_name,
-    seats: 4,
-    status: data.status,
-    qr_code: data.qr_code,
-    created_at: data.created_at,
-  };
+  return mapTable(data);
 }
 
 export async function updateTable(
@@ -89,26 +115,33 @@ export async function updateTable(
     .from(TABLE_NAME)
     .update({
       table_number: table.number,
-      table_name: table.name,
+
+      table_name:
+        table.name.trim() ||
+        `الطاولة ${table.number}`,
+
+      seats:
+        table.seats > 0
+          ? table.seats
+          : 4,
+
       status: table.status,
     })
     .eq("id", table.id)
-    .select()
+    .select("*")
     .single();
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        "رقم الطاولة مستخدم بالفعل."
+      );
+    }
+
     throw error;
   }
 
-  return {
-    id: String(data.id),
-    number: data.table_number,
-    name: data.table_name,
-    seats: 4,
-    status: data.status,
-    qr_code: data.qr_code,
-    created_at: data.created_at,
-  };
+  return mapTable(data);
 }
 
 export async function deleteTable(
@@ -120,6 +153,12 @@ export async function deleteTable(
     .eq("id", id);
 
   if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "لا يمكن حذف هذه الطاولة لأنها مرتبطة بطلبات موجودة."
+      );
+    }
+
     throw error;
   }
 }

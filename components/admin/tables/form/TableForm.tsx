@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { CreateTable, Table } from "@/types/table";
+
+import {
+  CreateTable,
+  Table,
+} from "@/types/table";
 
 interface Props {
   tables: Table[];
@@ -15,29 +19,54 @@ export default function TableForm({
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
   const [seats, setSeats] = useState("4");
+  const [loading, setLoading] = useState(false);
 
-  async function handleAdd() {
-    if (!number.trim()) {
-      alert("أدخل رقم الطاولة");
+  async function handleSubmit(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
+    e.preventDefault();
+
+    const tableNumber = Number(number);
+    const tableSeats = Number(seats);
+
+    if (
+      !Number.isInteger(tableNumber) ||
+      tableNumber <= 0
+    ) {
+      alert("أدخل رقم طاولة صحيح.");
       return;
     }
 
-    const tableNumber = Number(number);
+    if (
+      !Number.isInteger(tableSeats) ||
+      tableSeats <= 0
+    ) {
+      alert("أدخل عدد مقاعد صحيح.");
+      return;
+    }
 
-    const exists = tables.some(
-      (table) => table.number === tableNumber
-    );
-
-    if (exists) {
-      alert(`رقم الطاولة ${tableNumber} مستخدم بالفعل.`);
+    if (
+      tables.some(
+        (table) =>
+          table.number === tableNumber
+      )
+    ) {
+      alert("رقم الطاولة موجود بالفعل.");
       return;
     }
 
     try {
+      setLoading(true);
+
       await onAdd({
         number: tableNumber,
-        name: name || `طاولة ${tableNumber}`,
-        seats: Number(seats),
+
+        name:
+          name.trim() ||
+          `الطاولة ${tableNumber}`,
+
+        seats: tableSeats,
+
         status: "available",
       });
 
@@ -45,53 +74,79 @@ export default function TableForm({
       setName("");
       setSeats("4");
 
-      alert("تمت إضافة الطاولة بنجاح");
+      alert("تمت إضافة الطاولة بنجاح.");
     } catch (error) {
-      console.error(error);
+      console.error(
+        "خطأ أثناء إضافة الطاولة:",
+        error
+      );
 
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("حدث خطأ أثناء إضافة الطاولة");
-      }
+      alert(
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ أثناء إضافة الطاولة."
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="rounded-xl border border-yellow-500/20 bg-zinc-900 p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl border border-zinc-800 bg-black/40 p-5"
+    >
       <div className="grid gap-4 md:grid-cols-4">
 
+        {/* رقم الطاولة */}
         <input
           type="number"
-          placeholder="رقم الطاولة"
+          min="1"
+          required
           value={number}
-          onChange={(e) => setNumber(e.target.value)}
-          className="rounded-lg border border-zinc-700 bg-black p-3"
+          onChange={(e) =>
+            setNumber(e.target.value)
+          }
+          placeholder="رقم الطاولة"
+          className="rounded-lg border border-zinc-700 bg-black p-3 text-white outline-none focus:border-yellow-500"
         />
 
+        {/* اسم الطاولة */}
         <input
-          placeholder="اسم الطاولة"
+          type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="rounded-lg border border-zinc-700 bg-black p-3"
+          onChange={(e) =>
+            setName(e.target.value)
+          }
+          placeholder="اسم الطاولة"
+          className="rounded-lg border border-zinc-700 bg-black p-3 text-white outline-none focus:border-yellow-500"
         />
 
+        {/* عدد المقاعد */}
         <input
           type="number"
-          placeholder="عدد المقاعد"
+          min="1"
+          required
           value={seats}
-          onChange={(e) => setSeats(e.target.value)}
-          className="rounded-lg border border-zinc-700 bg-black p-3"
+          onChange={(e) =>
+            setSeats(e.target.value)
+          }
+          placeholder="عدد المقاعد"
+          className="rounded-lg border border-zinc-700 bg-black p-3 text-white outline-none focus:border-yellow-500"
         />
 
+        {/* زر الإضافة */}
         <button
-          onClick={handleAdd}
-          className="rounded-lg bg-yellow-500 p-3 font-bold text-black hover:bg-yellow-400"
+          type="submit"
+          disabled={loading}
+          className="rounded-lg bg-yellow-500 p-3 font-bold text-black transition hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          إضافة طاولة
+          {loading
+            ? "جارٍ الإضافة..."
+            : "إضافة طاولة"}
         </button>
 
       </div>
-    </div>
+    </form>
   );
 }

@@ -48,6 +48,7 @@ export default function FeaturedProducts() {
                     alt={item.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
 
                   <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-yellow-500 px-3 py-1 text-sm font-bold text-black">
@@ -65,7 +66,7 @@ export default function FeaturedProducts() {
                     {item.description}
                   </p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <span className="text-2xl font-black text-yellow-400">
                       {item.price} ر.س
                     </span>

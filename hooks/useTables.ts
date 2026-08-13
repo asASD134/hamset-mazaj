@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   getTables,
@@ -17,36 +21,61 @@ import {
 } from "@/types/table";
 
 export function useTables() {
-  const [tables, setTables] = useState<Table[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tables, setTables] =
+    useState<Table[]>([]);
 
-  const refresh = useCallback(async () => {
-    try {
-      setLoading(true);
+  const [loading, setLoading] =
+    useState(true);
 
-      const data = await getTables();
+  const [error, setError] =
+    useState<string | null>(null);
 
-      setTables(data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const refresh = useCallback(
+    async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data =
+          await getTables();
+
+        setTables(data);
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "حدث خطأ أثناء تحميل الطاولات"
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  async function add(table: CreateTable) {
+  async function add(
+    table: CreateTable
+  ) {
     await createTable(table);
     await refresh();
   }
 
-  async function update(table: UpdateTable) {
+  async function update(
+    table: UpdateTable
+  ) {
     await updateTable(table);
     await refresh();
   }
 
-  async function remove(id: string) {
+  async function remove(
+    id: string
+  ) {
     await deleteTable(id);
     await refresh();
   }
@@ -55,13 +84,18 @@ export function useTables() {
     id: string,
     status: Table["status"]
   ) {
-    await updateTableStatus(id, status);
+    await updateTableStatus(
+      id,
+      status
+    );
+
     await refresh();
   }
 
   return {
     tables,
     loading,
+    error,
     refresh,
     add,
     update,

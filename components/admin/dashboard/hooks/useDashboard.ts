@@ -1,38 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
-import { supabase } from "@/lib/supabase";
 import { getDashboardStats } from "@/services/dashboard";
-
-interface DashboardStats {
-  orders: number;
-  products: number;
-  tables: number;
-  activeOrders: number;
-}
+import type { DashboardStats } from "@/services/dashboard";
 
 export function useDashboard() {
   const [stats, setStats] =
     useState<DashboardStats>({
       orders: 0,
+      pendingOrders: 0,
+      serviceRequests: 0,
+      sales: 0,
       products: 0,
       tables: 0,
-      activeOrders: 0,
+      availableTables: 0,
+      occupiedTables: 0,
     });
 
   const [loading, setLoading] =
     useState(true);
 
-  async function loadDashboard() {
+  const refresh = useCallback(async () => {
     try {
+      setLoading(true);
+
       const data =
         await getDashboardStats();
 
       setStats(data);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "خطأ في تحميل لوحة التحكم:",
+        error
+      );
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+
+    return undefined;
+  }, [refresh]);
+
+  return {
+    stats,
+    loading,
+    refresh,
+  };
+}

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+
 import {
   MenuItem,
   CreateMenuItem,
@@ -7,21 +8,34 @@ import {
 
 const TABLE_NAME = "menu";
 
+function mapMenuItem(item: any): MenuItem {
+  return {
+    id: String(item.id),
+    name: item.name_ar ?? "",
+    description: item.description_ar ?? "",
+    price: Number(item.price ?? 0),
+    image: item.image_url ?? "",
+    category: String(item.category_id ?? ""),
+    available: Boolean(item.is_available),
+    featured: Boolean(item.is_featured),
+    sort_order: Number(item.sort_order ?? 0),
+    created_at: item.created_at ?? "",
+  };
+}
+
 export async function getMenuItems(): Promise<MenuItem[]> {
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("sort_order", {
+      ascending: true,
+    });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  return ((data ?? []) as any[]).map((item) => ({
-    ...item,
-    available: item.is_available,
-    image: item.image_url,
-    category: item.category_id,
-    price: Number(item.price),
-  })) as MenuItem[];
+  return (data ?? []).map(mapMenuItem);
 }
 
 export async function getMenuItem(
@@ -33,66 +47,104 @@ export async function getMenuItem(
     .eq("id", id)
     .single();
 
-  if (error) return null;
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
 
-  return {
-    ...data,
-    available: data.is_available,
-    image: data.image_url,
-    category: data.category_id,
-    price: Number(data.price),
-  } as MenuItem;
+    throw error;
+  }
+
+  return mapMenuItem(data);
 }
 
 export async function createMenuItem(
   item: CreateMenuItem
 ): Promise<MenuItem> {
+  const name = item.name.trim();
+  const description = item.description.trim();
+
+  if (!name) {
+    throw new Error("اسم المنتج مطلوب");
+  }
+
+  if (!item.category) {
+    throw new Error("يجب اختيار التصنيف");
+  }
+
+  if (!Number.isFinite(item.price) || item.price < 0) {
+    throw new Error("السعر غير صحيح");
+  }
+
   const payload = {
-    name_ar: item.name,
-    price: item.price,
-    image_url: item.image,
     category_id: item.category,
+    name_ar: name,
+    name_en: name,
+    description_ar: description,
+    description_en: description,
+    price: item.price,
+    image_url: item.image || null,
     is_available: item.available,
-    description: item.description,
+    is_featured: item.featured ?? false,
     sort_order: item.sort_order,
   };
 
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .insert(payload)
-    .select()
+    .select("*")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  return data as MenuItem;
+  return mapMenuItem(data);
 }
 
 export async function updateMenuItem(
   item: UpdateMenuItem
 ): Promise<MenuItem> {
-  const { id, ...values } = item;
+  const name = item.name.trim();
+  const description = item.description.trim();
+
+  if (!name) {
+    throw new Error("اسم المنتج مطلوب");
+  }
+
+  if (!item.category) {
+    throw new Error("يجب اختيار التصنيف");
+  }
+
+  if (!Number.isFinite(item.price) || item.price < 0) {
+    throw new Error("السعر غير صحيح");
+  }
 
   const payload = {
-    name_ar: values.name,
-    price: values.price,
-    image_url: values.image,
-    category_id: values.category,
-    is_available: values.available,
-    description: values.description,
-    sort_order: values.sort_order,
+    category_id: item.category,
+    name_ar: name,
+    name_en: name,
+    description_ar: description,
+    description_en: description,
+    price: item.price,
+    image_url: item.image || null,
+    is_available: item.available,
+    is_featured: item.featured ?? false,
+    sort_order: item.sort_order,
   };
 
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .update(payload)
-    .eq("id", id)
-    .select()
+    .eq("id", item.id)
+    .select("*")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  return data as MenuItem;
+  return mapMenuItem(data);
 }
 
 export async function deleteMenuItem(
@@ -103,7 +155,9 @@ export async function deleteMenuItem(
     .delete()
     .eq("id", id);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 }
 
 export async function toggleMenuAvailability(
@@ -117,5 +171,7 @@ export async function toggleMenuAvailability(
     })
     .eq("id", id);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 }

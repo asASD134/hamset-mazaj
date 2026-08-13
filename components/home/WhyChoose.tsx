@@ -9,6 +9,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import SiteName from "@/components/SiteName";
+
 const features = [
   {
     icon: Coffee,
@@ -52,7 +54,7 @@ export default function WhyChoose() {
           </span>
 
           <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
-            لماذا تختار همسة مزاج؟
+            لماذا تختار <SiteName />؟
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">

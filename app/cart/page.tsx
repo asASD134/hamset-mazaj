@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+
 import {
-  ShoppingBag,
   CheckCircle2,
   CreditCard,
 } from "lucide-react";
@@ -30,44 +30,75 @@ export default function CartPage() {
 
   const { tableNumber } = useTable();
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] =
+    useState(false);
 
-  const requestIdRef = useRef(crypto.randomUUID());
+  const [message, setMessage] =
+    useState("");
 
-  const total = getCartTotal(items);
+  const requestIdRef = useRef(
+    crypto.randomUUID()
+  );
+
+  const total =
+    getCartTotal(items);
 
   async function handleCheckout() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     if (!tableNumber) {
-      setMessage("❌ يجب الدخول عن طريق QR الخاص بالطاولة.");
+      setMessage(
+        "❌ يجب الدخول عن طريق QR الخاص بالطاولة."
+      );
+
+      return;
+    }
+
+    if (items.length === 0) {
+      setMessage(
+        "❌ السلة فارغة."
+      );
+
       return;
     }
 
     try {
       setLoading(true);
+      setMessage("");
 
-      await createOrder(
-        tableNumber,
-        items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
+      await createOrder({
+        tableNumber: Number(
+          tableNumber
+        ),
+
+        items: items.map((item) => ({
+          menuItemId: String(
+            item.id
+          ),
+
+          quantity:
+            Number(item.quantity),
+
+          price:
+            Number(item.price),
         })),
-        requestIdRef.current
-      );
+      });
 
       clearCart();
 
-      requestIdRef.current = crypto.randomUUID();
+      requestIdRef.current =
+        crypto.randomUUID();
 
       setMessage(
         `✅ تم إرسال طلب الطاولة رقم ${tableNumber} بنجاح.`
       );
     } catch (error: unknown) {
-      console.error(error);
+      console.error(
+        "خطأ أثناء إرسال الطلب:",
+        error
+      );
 
       setMessage(
         error instanceof Error
@@ -81,13 +112,8 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black px-6">
-        <div className="max-w-md rounded-[32px] border border-yellow-500/20 bg-zinc-900 p-12 text-center">
-          <ShoppingBag
-            size={80}
-            className="mx-auto text-yellow-400"
-          />
-
+      <main className="min-h-screen bg-black px-6 py-16 text-white">
+        <div className="mx-auto max-w-4xl text-center">
           <h1 className="mt-8 text-4xl font-black text-white">
             السلة فارغة
           </h1>
@@ -101,12 +127,16 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black py-16">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-12 overflow-hidden rounded-[32px] border border-yellow-500/20 bg-gradient-to-r from-yellow-500 to-yellow-600 p-10 text-black">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+    <main className="min-h-screen bg-black px-6 py-10 text-white">
+      <div className="mx-auto max-w-5xl">
+
+        {/* العنوان */}
+
+        <div className="mb-10 rounded-[32px] bg-yellow-500 p-8 text-black">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+
             <div>
-              <h1 className="text-5xl font-black">
+              <h1 className="text-4xl font-black">
                 سلة الطلب
               </h1>
 
@@ -124,8 +154,11 @@ export default function CartPage() {
                 {total} ر.س
               </p>
             </div>
+
           </div>
         </div>
+
+        {/* المنتجات */}
 
         <div className="space-y-6">
           {items.map((item) => (
@@ -135,10 +168,14 @@ export default function CartPage() {
               name={item.name}
               price={item.price}
               quantity={item.quantity}
-              onRemove={() => removeFromCart(item.id)}
+              onRemove={() =>
+                removeFromCart(item.id)
+              }
             />
           ))}
         </div>
+
+        {/* ملخص السلة */}
 
         <div className="mt-10">
           <CartSummary
@@ -147,8 +184,12 @@ export default function CartPage() {
           />
         </div>
 
+        {/* تأكيد الطلب */}
+
         <div className="mt-10 rounded-[32px] border border-yellow-500/20 bg-zinc-900 p-8">
+
           <div className="mb-8 flex items-center gap-4">
+
             <CreditCard
               size={34}
               className="text-yellow-400"
@@ -163,10 +204,13 @@ export default function CartPage() {
                 بعد الضغط على الزر سيتم إرسال الطلب مباشرة إلى موظفي المقهى.
               </p>
             </div>
+
           </div>
 
           <CheckoutButton
-            onCheckout={handleCheckout}
+            onCheckout={
+              handleCheckout
+            }
             disabled={loading}
           />
 
@@ -178,13 +222,16 @@ export default function CartPage() {
 
           {message && (
             <div className="mt-8 flex items-center justify-center gap-3 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-400">
-              <CheckCircle2 size={26} />
+              <CheckCircle2
+                size={26}
+              />
 
               <span className="font-bold">
                 {message}
               </span>
             </div>
           )}
+
         </div>
       </div>
     </main>

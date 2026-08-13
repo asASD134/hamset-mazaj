@@ -2,9 +2,14 @@
 
 import { deleteCategory } from "./CategoryActions";
 
+interface Category {
+  id: string;
+  name_ar: string;
+}
+
 interface DeleteCategoryDialogProps {
   open: boolean;
-  category: any;
+  category: Category | null;
   onClose: () => void;
 }
 
@@ -13,18 +18,26 @@ export default function DeleteCategoryDialog({
   category,
   onClose,
 }: DeleteCategoryDialogProps) {
-  if (!open || !category) return null;
+  if (!open || !category) {
+    return null;
+  }
 
   async function handleDelete() {
     try {
-      await deleteCategory(Number(category.id));
+      await deleteCategory(
+        category.id
+      );
 
       alert("تم حذف التصنيف بنجاح");
 
       onClose();
       window.location.reload();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ أثناء حذف التصنيف"
+      );
     }
   }
 
@@ -46,6 +59,7 @@ export default function DeleteCategoryDialog({
 
         <div className="flex justify-end gap-2">
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg bg-gray-600 px-4 py-2 hover:bg-gray-500"
           >
@@ -53,6 +67,7 @@ export default function DeleteCategoryDialog({
           </button>
 
           <button
+            type="button"
             onClick={handleDelete}
             className="rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-500"
           >

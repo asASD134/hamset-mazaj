@@ -1,6 +1,7 @@
 "use client";
 
 import { Star } from "lucide-react";
+import SiteName from "@/components/SiteName";
 
 const reviews = [
   {
@@ -32,7 +33,7 @@ export default function Testimonials() {
 
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
             نفخر بثقة عملائنا ونسعى دائماً لتقديم أفضل تجربة داخل
-            مقهى همسة مزاج.
+            مقهى <SiteName />.
           </p>
         </div>
 

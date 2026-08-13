@@ -1,3 +1,5 @@
+import getCafeName from "@/lib/getCafeName";
+
 const matches = [
   {
     title: "🏆 نهائي كأس العالم 2026",
@@ -15,12 +17,13 @@ const matches = [
   },
 ];
 
-export default function MatchesPage() {
+export default async function MatchesPage() {
+  const cafeName = await getCafeName();
+
   return (
     <main className="min-h-screen bg-black text-white px-6 py-12">
-
       <h1 className="text-5xl font-bold text-center text-yellow-400 mb-4">
-        ⚽ مباريات همسة مزاج
+        ⚽ مباريات {cafeName}
       </h1>
 
       <p className="text-center text-gray-300 mb-12">
@@ -28,7 +31,6 @@ export default function MatchesPage() {
       </p>
 
       <div className="max-w-5xl mx-auto grid gap-8">
-
         {matches.map((match, index) => (
           <div
             key={index}
@@ -47,7 +49,7 @@ export default function MatchesPage() {
             <div className="mt-8 text-center space-y-2 text-lg">
               <p>📅 {match.date}</p>
               <p>🕙 {match.time}</p>
-              <p>📺 تُعرض المباراة داخل مقهى همسة مزاج</p>
+              <p>📺 تُعرض المباراة داخل {cafeName}</p>
             </div>
 
             <div className="mt-8 flex justify-center">
@@ -60,7 +62,6 @@ export default function MatchesPage() {
             </div>
           </div>
         ))}
-
       </div>
 
       <section className="mt-16 bg-zinc-900 rounded-3xl max-w-5xl mx-auto p-8 border border-yellow-500/30">
@@ -91,7 +92,6 @@ export default function MatchesPage() {
           </div>
         </div>
       </section>
-
     </main>
   );
 }

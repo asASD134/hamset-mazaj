@@ -2,8 +2,11 @@ import { supabase } from "@/lib/supabase";
 
 export interface Category {
   id: string;
-  name: string;
+  name_ar: string;
+  name_en: string;
+  image_url: string | null;
   sort_order: number;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -22,12 +25,24 @@ export async function getCategories(): Promise<Category[]> {
   return (data as Category[]) ?? [];
 }
 
-export async function createCategory(name: string) {
+export async function createCategory(
+  name: string,
+  sortOrder = 0
+): Promise<Category> {
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    throw new Error("اسم التصنيف مطلوب");
+  }
+
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .insert({
-      name,
-      sort_order: 0,
+      name_ar: cleanName,
+      name_en: cleanName,
+      image_url: null,
+      sort_order: sortOrder,
+      is_active: true,
     })
     .select()
     .single();
@@ -36,18 +51,36 @@ export async function createCategory(name: string) {
     throw error;
   }
 
-  return data;
+  return data as Category;
 }
 
 export async function updateCategory(
   id: string,
-  name: string
-) {
+  name: string,
+  sortOrder?: number
+): Promise<void> {
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    throw new Error("اسم التصنيف مطلوب");
+  }
+
+  const payload: {
+    name_ar: string;
+    name_en: string;
+    sort_order?: number;
+  } = {
+    name_ar: cleanName,
+    name_en: cleanName,
+  };
+
+  if (sortOrder !== undefined) {
+    payload.sort_order = sortOrder;
+  }
+
   const { error } = await supabase
     .from(TABLE_NAME)
-    .update({
-      name,
-    })
+    .update(payload)
     .eq("id", id);
 
   if (error) {
@@ -55,7 +88,9 @@ export async function updateCategory(
   }
 }
 
-export async function deleteCategory(id: string) {
+export async function deleteCategory(
+  id: string
+): Promise<void> {
   const { error } = await supabase
     .from(TABLE_NAME)
     .delete()

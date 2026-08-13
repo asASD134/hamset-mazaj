@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   getMenuItems,
@@ -17,18 +21,32 @@ import {
 } from "@/types/menu";
 
 export function useMenu() {
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] =
+    useState<MenuItem[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      const data = await getMenuItems();
+      const data =
+        await getMenuItems();
 
       setItems(data);
     } catch (error) {
       console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ أثناء تحميل المنيو"
+      );
     } finally {
       setLoading(false);
     }
@@ -38,12 +56,16 @@ export function useMenu() {
     refresh();
   }, [refresh]);
 
-  async function add(item: CreateMenuItem) {
+  async function add(
+    item: CreateMenuItem
+  ) {
     await createMenuItem(item);
     await refresh();
   }
 
-  async function update(item: UpdateMenuItem) {
+  async function update(
+    item: UpdateMenuItem
+  ) {
     await updateMenuItem(item);
     await refresh();
   }
@@ -57,13 +79,18 @@ export function useMenu() {
     id: string,
     available: boolean
   ) {
-    await toggleMenuAvailability(id, available);
+    await toggleMenuAvailability(
+      id,
+      available
+    );
+
     await refresh();
   }
 
   return {
     items,
     loading,
+    error,
     refresh,
     add,
     update,

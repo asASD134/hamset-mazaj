@@ -25,14 +25,19 @@ export default function TableManager() {
   const [openEdit, setOpenEdit] =
     useState(false);
 
-  async function copyLink(tableNumber: number) {
+  async function copyLink(
+    tableNumber: number
+  ) {
     const url =
       `${window.location.origin}/?table=${tableNumber}`;
 
     try {
       await navigator.clipboard.writeText(url);
+
       alert("تم نسخ رابط الطاولة.");
-    } catch {
+    } catch (error) {
+      console.error(error);
+
       alert("تعذر نسخ الرابط.");
     }
   }
@@ -46,19 +51,22 @@ export default function TableManager() {
       `هل أنت متأكد من حذف ${tableName} ؟\n\nرقم الطاولة: ${tableNumber}`
     );
 
-    if (!ok) return;
+    if (!ok) {
+      return;
+    }
 
     try {
       await remove(id);
-      alert("تم حذف الطاولة بنجاح");
+
+      alert("تم حذف الطاولة بنجاح.");
     } catch (error) {
       console.error(error);
 
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("حدث خطأ أثناء حذف الطاولة.");
-      }
+      alert(
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ أثناء حذف الطاولة."
+      );
     }
   }
 
@@ -67,17 +75,24 @@ export default function TableManager() {
     setOpenEdit(true);
   }
 
+  function closeEdit() {
+    setOpenEdit(false);
+    setEditingTable(null);
+  }
+
   if (loading) {
     return (
-      <div className="flex justify-center py-20 text-xl">
-        جاري تحميل الطاولات...
-      </div>
+      <main className="min-h-screen bg-black p-8 text-white">
+        <div className="mx-auto max-w-7xl text-center">
+          جاري تحميل الطاولات...
+        </div>
+      </main>
     );
   }
 
   return (
-    <>
-      <main className="space-y-8">
+    <main className="min-h-screen bg-black p-8 text-white">
+      <div className="mx-auto max-w-7xl space-y-8">
 
         <div>
           <h1 className="text-4xl font-bold text-yellow-400">
@@ -102,23 +117,18 @@ export default function TableManager() {
           onEdit={handleEdit}
         />
 
-      </main>
+      </div>
 
       <EditTableModal
         open={openEdit}
         table={editingTable}
         tables={tables}
-        onClose={() => {
-          setOpenEdit(false);
-          setEditingTable(null);
-        }}
+        onClose={closeEdit}
         onSave={async (table) => {
           await update(table);
-
-          setOpenEdit(false);
-          setEditingTable(null);
+          closeEdit();
         }}
       />
-    </>
+    </main>
   );
 }

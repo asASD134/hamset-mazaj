@@ -6,30 +6,25 @@ export type TableStatus =
 
 export interface Table {
   id: string;
-
   number: number;
-
   name: string;
-
   seats: number;
-
   status: TableStatus;
-
   qr_code: string | null;
-
   created_at: string;
 }
 
 export interface CreateTable {
   number: number;
-
   name: string;
-
-  seats: number;
-
+  seats?: number;
   status?: TableStatus;
 }
 
-export interface UpdateTable extends CreateTable {
+export interface UpdateTable {
   id: string;
+  number: number;
+  name: string;
+  seats?: number;
+  status: TableStatus;
 }

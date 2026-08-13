@@ -1,82 +1,162 @@
 import { supabase } from "@/lib/supabase";
 import { ProductFormData } from "./types";
 
-export async function uploadProductImage(image: File | null) {
-  if (!image) return "";
+const BUCKET = "menu-images";
 
-  const extension = image.name.split(".").pop() || "png";
-  const fileName = `${Date.now()}.${extension}`;
+export async function uploadProductImage(
+  image: File | null
+) {
+  if (!image) {
+    return "";
+  }
 
-  const { error } = await supabase.storage
-    .from("menu")
-    .upload(fileName, image);
+  const extension =
+    image.name.split(".").pop() || "png";
 
-  if (error) throw new Error(error.message);
+  const fileName =
+    `${crypto.randomUUID()}.${extension}`;
 
-  const { data } = supabase.storage
-    .from("menu")
-    .getPublicUrl(fileName);
+  const filePath =
+    `products/${fileName}`;
+
+  const { error } =
+    await supabase.storage
+      .from(BUCKET)
+      .upload(filePath, image, {
+        upsert: false,
+      });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const { data } =
+    supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(filePath);
 
   return data.publicUrl;
 }
 
-export async function createProduct(form: ProductFormData) {
-  const imageUrl = await uploadProductImage(form.image);
+export async function createProduct(
+  form: ProductFormData
+) {
+  if (!form.categoryId) {
+    throw new Error(
+      "يجب اختيار التصنيف"
+    );
+  }
 
-  const { error } = await supabase.from("menu").insert({
-    category_id: Number(form.categoryId),
-    name_ar: form.nameAr,
-    name_en: form.nameEn,
-    description_ar: form.descriptionAr,
-    description_en: form.descriptionEn,
-    price: Number(form.price),
-    calories: Number(form.calories),
-    image_url: imageUrl,
-    is_available: true,
-    is_featured: false,
-    sort_order: 1,
-  });
+  if (!form.nameAr.trim()) {
+    throw new Error(
+      "اسم المنتج مطلوب"
+    );
+  }
 
-  if (error) throw new Error(error.message);
+  const imageUrl =
+    await uploadProductImage(
+      form.image
+    );
+
+  const { error } =
+    await supabase
+      .from("menu")
+      .insert({
+        category_id: form.categoryId,
+        name_ar: form.nameAr.trim(),
+        name_en:
+          form.nameEn.trim() ||
+          form.nameAr.trim(),
+        description_ar:
+          form.descriptionAr.trim(),
+        description_en:
+          form.descriptionEn.trim(),
+        price: Number(form.price),
+        calories:
+          Number(form.calories) || 0,
+        image_url:
+          imageUrl || null,
+        is_available: true,
+        is_featured: false,
+        sort_order: 0,
+      });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function updateProduct(
-  id: number,
+  id: string | number,
   form: ProductFormData,
-  currentImage: string
+  currentImage: string | null
 ) {
-  let imageUrl = currentImage;
-
-  if (form.image) {
-    imageUrl = await uploadProductImage(form.image);
+  if (!form.categoryId) {
+    throw new Error(
+      "يجب اختيار التصنيف"
+    );
   }
 
-  const { error } = await supabase
-    .from("menu")
-    .update({
-      category_id: Number(form.categoryId),
-      name_ar: form.nameAr,
-      name_en: form.nameEn,
-      description_ar: form.descriptionAr,
-      description_en: form.descriptionEn,
-      price: Number(form.price),
-      calories: Number(form.calories),
-      image_url: imageUrl,
-    })
-    .eq("id", id);
+  if (!form.nameAr.trim()) {
+    throw new Error(
+      "اسم المنتج مطلوب"
+    );
+  }
 
-  if (error) throw new Error(error.message);
+  let imageUrl =
+    currentImage ?? null;
+
+  if (form.image) {
+    imageUrl =
+      await uploadProductImage(
+        form.image
+      );
+  }
+
+  const { error } =
+    await supabase
+      .from("menu")
+      .update({
+        category_id: form.categoryId,
+        name_ar: form.nameAr.trim(),
+        name_en:
+          form.nameEn.trim() ||
+          form.nameAr.trim(),
+        description_ar:
+          form.descriptionAr.trim(),
+        description_en:
+          form.descriptionEn.trim(),
+        price: Number(form.price),
+        calories:
+          Number(form.calories) || 0,
+        image_url: imageUrl,
+      })
+      .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-export async function deleteProduct(id: number) {
-  const confirmed = confirm("هل أنت متأكد من حذف هذا المنتج؟");
+export async function deleteProduct(
+  id: string | number
+) {
+  const confirmed =
+    window.confirm(
+      "هل أنت متأكد من حذف هذا المنتج؟"
+    );
 
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
 
-  const { error } = await supabase
-    .from("menu")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("menu")
+      .delete()
+      .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
 }

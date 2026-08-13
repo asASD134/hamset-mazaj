@@ -3,7 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+
 import { useTable } from "@/context/TableContext";
+import SiteName from "@/components/SiteName";
+import { useCafeSettings } from "@/context/CafeSettingsContext";
 
 const images = [
   "/images/gallery1.jpg",
@@ -16,12 +19,19 @@ const images = [
 
 export default function GalleryPreview() {
   const { hasTable, tableNumber } = useTable();
+  const { settings } = useCafeSettings();
+
+  const cafeName =
+    settings.cafe_name || "همسة مزاج";
 
   const withTable = (path: string) =>
     hasTable ? `${path}?table=${tableNumber}` : path;
 
   return (
-    <section className="bg-[#0b0b0b] py-24">
+    <section
+      dir="rtl"
+      className="bg-[#0b0b0b] py-24"
+    >
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-14 text-center">
           <span className="font-bold tracking-[0.3em] text-yellow-400">
@@ -29,7 +39,7 @@ export default function GalleryPreview() {
           </span>
 
           <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
-            أجواء همسة مزاج
+            أجواء <SiteName />
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
@@ -40,21 +50,22 @@ export default function GalleryPreview() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {images.map((image, index) => (
             <div
-              key={index}
+              key={image}
               className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
             >
               <Image
                 src={image}
-                alt={`صورة ${index + 1}`}
+                alt={`صورة ${index + 1} من معرض ${cafeName}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
 
               <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
 
               <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
                 <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
-                  همسة مزاج
+                  <SiteName />
                 </span>
               </div>
             </div>

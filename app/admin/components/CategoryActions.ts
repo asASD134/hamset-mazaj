@@ -4,44 +4,61 @@ export async function createCategory(
   name: string,
   sortOrder: number
 ) {
-  const { error } = await supabase.from("categories").insert({
-    name_ar: name,
-    name_en: name,
-    image_url: "",
-    sort_order: sortOrder,
-    is_active: true,
-  });
+  const cleanName = name.trim();
 
-  if (error) throw new Error(error.message);
+  if (!cleanName) {
+    throw new Error("اسم التصنيف مطلوب");
+  }
+
+  const { error } = await supabase
+    .from("categories")
+    .insert({
+      name_ar: cleanName,
+      name_en: cleanName,
+      image_url: null,
+      sort_order: sortOrder,
+      is_active: true,
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function updateCategory(
-  id: number,
+  id: string,
   name: string,
   sortOrder: number
 ) {
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    throw new Error("اسم التصنيف مطلوب");
+  }
+
   const { error } = await supabase
     .from("categories")
     .update({
-      name_ar: name,
-      name_en: name,
+      name_ar: cleanName,
+      name_en: cleanName,
       sort_order: sortOrder,
-      is_active: true,
     })
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-export async function deleteCategory(id: number) {
-  const confirmed = confirm("هل تريد حذف هذا التصنيف؟");
-
-  if (!confirmed) return;
-
+export async function deleteCategory(
+  id: string
+) {
   const { error } = await supabase
     .from("categories")
     .delete()
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
 }
