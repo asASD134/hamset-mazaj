@@ -20,6 +20,18 @@ function getCafeFromReferer(request: NextRequest) {
   }
 }
 
+function cameFromCafeManagement(request: NextRequest) {
+  const referer = request.headers.get("referer");
+  if (!referer) return false;
+
+  try {
+    const url = new URL(referer);
+    return url.origin === request.nextUrl.origin && url.pathname === "/admin/cafes";
+  } catch {
+    return false;
+  }
+}
+
 function shouldPreserveCafeInUrl(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -43,6 +55,19 @@ function shouldRefreshAuth(request: NextRequest) {
 export async function updateSession(request: NextRequest) {
   const url = request.nextUrl.clone();
   const explicitCafe = url.searchParams.get(CAFE_QUERY_PARAM);
+
+  // The existing "إعدادات المنصة" action on the system-admin cafe manager
+  // opens the new global settings page. Cafe-specific settings always carry
+  // an explicit ?cafe=... parameter and therefore remain untouched.
+  if (
+    request.nextUrl.pathname === "/admin/settings" &&
+    !explicitCafe &&
+    cameFromCafeManagement(request)
+  ) {
+    url.pathname = "/admin/platform-settings";
+    return NextResponse.redirect(url);
+  }
+
   const refererCafe = explicitCafe || getCafeFromReferer(request);
   const resolvedCafe = refererCafe || DEFAULT_CAFE_SLUG;
 
@@ -72,14 +97,10 @@ export async function updateSession(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            // Update the incoming request cookie jar so downstream server
-            // handlers can see the refreshed auth session immediately.
             cookiesToSet.forEach(({ name, value }) => {
               request.cookies.set(name, value);
             });
 
-            // Rebuild the response with the updated request headers and then
-            // copy all cookies back to the browser.
             response = makeResponse();
             cookiesToSet.forEach(({ name, value, options }) => {
               response.cookies.set(name, value, options);
