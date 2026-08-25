@@ -62,20 +62,21 @@ function InactiveCafePage({ cafeName }: { cafeName: string }) {
   );
 }
 
+// Only these fields are true platform-wide controls.
+// All manually-written content remains owned by each individual cafe/site.
 const GLOBAL_KEYS = [
   "primary_color", "background_color", "surface_color", "typography",
-  "hero_enabled", "hero_title", "hero_subtitle", "hero_description", "hero_badge",
-  "hero_primary_enabled", "hero_primary_text", "hero_primary_url",
-  "hero_secondary_enabled", "hero_secondary_text", "hero_secondary_url",
-  "featured_enabled", "featured_title", "featured_description", "featured_limit",
-  "why_enabled", "why_title", "why_description",
-  "matches_enabled", "matches_title", "matches_description",
-  "gallery_enabled", "gallery_title", "gallery_description",
-  "testimonials_enabled", "testimonials_title", "testimonials_description",
-  "contact_enabled", "contact_title", "contact_description",
-  "footer_enabled", "footer_description",
+  "hero_enabled",
+  "featured_enabled", "featured_limit",
+  "why_enabled",
+  "matches_enabled",
+  "gallery_enabled",
+  "testimonials_enabled",
+  "contact_enabled",
+  "footer_enabled",
   "show_phone", "show_address", "show_opening_hours", "show_social_links", "show_map",
-  "section_order", "show_site_name", "show_tagline", "show_site_description", "show_logo",
+  "section_order",
+  "show_site_name", "show_tagline", "show_site_description", "show_logo",
   "show_hero_badge", "show_hero_title", "show_hero_subtitle", "show_hero_description", "show_hero_primary_button", "show_hero_secondary_button",
   "show_featured_badge", "show_featured_title", "show_featured_description", "show_featured_products", "show_featured_prices", "show_featured_button",
   "show_why_title", "show_why_description", "show_why_features",
