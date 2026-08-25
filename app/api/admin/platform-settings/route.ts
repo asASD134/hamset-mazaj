@@ -31,6 +31,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+const GLOBAL_FOUNDATION_KEYS = new Set([
+  "hero_enabled",
+  "featured_enabled", "featured_limit",
+  "why_enabled",
+  "matches_enabled",
+  "gallery_enabled",
+  "testimonials_enabled",
+  "contact_enabled",
+  "footer_enabled",
+  "show_phone", "show_address", "show_opening_hours", "show_social_links", "show_map",
+  "section_order",
+  "show_site_name", "show_tagline", "show_site_description", "show_logo",
+  "show_hero_badge", "show_hero_title", "show_hero_subtitle", "show_hero_description", "show_hero_primary_button", "show_hero_secondary_button",
+  "show_featured_badge", "show_featured_title", "show_featured_description", "show_featured_products", "show_featured_prices", "show_featured_button",
+  "show_why_title", "show_why_description", "show_why_features",
+  "show_matches_title", "show_matches_description", "show_matches_list", "show_matches_button",
+  "show_gallery_title", "show_gallery_description", "show_gallery_images", "show_gallery_button",
+  "show_testimonials_title", "show_testimonials_description", "show_testimonials_list",
+  "show_contact_title", "show_contact_description", "show_contact_address", "show_contact_phone", "show_contact_hours", "show_contact_map", "show_contact_social_links",
+  "show_footer_description", "show_footer_links", "show_footer_contact", "show_footer_social_links", "show_footer_copyright",
+  "primary_color", "background_color", "surface_color", "typography",
+]);
+
+function sanitizeFoundation(value: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => GLOBAL_FOUNDATION_KEYS.has(key))
+  );
+}
+
 export async function PATCH(request: Request) {
   const admin = await requireSystemAdmin();
   if (!admin) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
@@ -56,7 +85,7 @@ export async function PATCH(request: Request) {
   }
   if (Object.hasOwn(body, "foundation")) {
     if (!isRecord(body.foundation)) return NextResponse.json({ error: "إعدادات أساسيات المنصة غير صحيحة." }, { status: 400 });
-    updates.foundation = body.foundation;
+    updates.foundation = sanitizeFoundation(body.foundation);
   }
   if (Object.hasOwn(body, "preview_assets")) {
     if (!isRecord(body.preview_assets)) return NextResponse.json({ error: "بيانات معاينة المنصة غير صحيحة." }, { status: 400 });
