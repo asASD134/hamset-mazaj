@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import "./globals.css";
 
@@ -16,7 +17,22 @@ import { getSiteControl } from "@/lib/getSiteControl";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const REQUEST_PATH_HEADER = "x-request-pathname";
+
+async function isAdminOrLoginRequest() {
+  const headerStore = await headers();
+  const pathname = headerStore.get(REQUEST_PATH_HEADER) || "";
+  return pathname.startsWith("/admin") || pathname === "/login";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
+  if (await isAdminOrLoginRequest()) {
+    return {
+      title: "همسة مزاج - الإدارة",
+      description: "لوحة إدارة همسة مزاج.",
+    };
+  }
+
   const settings = await getCafeSettings();
 
   const cafeName =
@@ -38,6 +54,19 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (await isAdminOrLoginRequest()) {
+    return (
+      <html
+        lang="ar"
+        dir="rtl"
+      >
+        <body className="bg-[#050505] text-white">
+          {children}
+        </body>
+      </html>
+    );
+  }
+
   const [settings, siteControl] =
     await Promise.all([
       getCafeSettings(),
