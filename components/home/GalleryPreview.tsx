@@ -8,15 +8,6 @@ import { useTable } from "@/context/TableContext";
 import SiteName from "@/components/SiteName";
 import { useSiteControl } from "@/context/SiteControlContext";
 
-const defaultImages = [
-  "/images/gallery1.jpg",
-  "/images/gallery2.jpg",
-  "/images/gallery3.jpg",
-  "/images/gallery4.jpg",
-  "/images/gallery5.jpg",
-  "/images/gallery6.jpg",
-];
-
 type GalleryHomeControl = {
   gallery_images_home?: boolean[];
 };
@@ -52,45 +43,17 @@ export default function GalleryPreview() {
     siteControl?.gallery_description ||
     "شاهد مجموعة من الصور التي تعكس أجواء المقهى والجلسات الراقية.";
 
-  const hasConfiguredGallery =
-    Array.isArray(siteControl?.gallery_images);
-
-  const configuredImages =
-    hasConfiguredGallery
-      ? siteControl.gallery_images
-      : [];
+  const configuredImages = Array.isArray(siteControl?.gallery_images)
+    ? siteControl.gallery_images.filter(Boolean)
+    : [];
 
   const galleryHome =
-    (siteControl as typeof siteControl &
-      GalleryHomeControl)
+    (siteControl as typeof siteControl & GalleryHomeControl)
       ?.gallery_images_home;
 
-  /*
-   * إذا كانت هناك نجمة واحدة على الأقل،
-   * نعرض الصور المختارة فقط.
-   *
-   * أما إذا لم يتم اختيار أي صورة بالنجمة
-   * (مثل الصور المرفوعة حديثًا)، فنُظهر كل
-   * صور المعرض بدل إخفائها بالكامل.
-   */
-  const hasHomeSelection =
-    Array.isArray(galleryHome) &&
-    galleryHome.some((selected) => selected === true);
-
-  const images = (
-    hasConfiguredGallery
-      ? configuredImages
-      : defaultImages
-  )
+  const images = configuredImages
     .map((image, index) => {
-      if (!image) {
-        return null;
-      }
-
-      if (
-        hasHomeSelection &&
-        galleryHome?.[index] !== true
-      ) {
+      if (galleryHome?.[index] !== true) {
         return null;
       }
 
@@ -107,7 +70,7 @@ export default function GalleryPreview() {
         index: number;
       } => Boolean(item)
     )
-    .slice(0, 6);
+    .slice(0, 4);
 
   return (
     <section
@@ -141,30 +104,28 @@ export default function GalleryPreview() {
           <>
             {images.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {images.map(
-                  ({ image, index }) => (
-                    <div
-                      key={`${image}-${index}`}
-                      className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
-                    >
-                      <Image
-                        src={image}
-                        alt={`صورة ${index + 1} من معرض ${title}`}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
+                {images.map(({ image, index }) => (
+                  <div
+                    key={`${image}-${index}`}
+                    className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
+                  >
+                    <Image
+                      src={image}
+                      alt={`صورة ${index + 1} من معرض ${title}`}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
 
-                      <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
+                    <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
 
-                      <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
-                        <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
-                          <SiteName />
-                        </span>
-                      </div>
+                    <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
+                      <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
+                        <SiteName />
+                      </span>
                     </div>
-                  )
-                )}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="rounded-3xl border border-white/10 bg-[#121212] p-10 text-center text-zinc-500">
