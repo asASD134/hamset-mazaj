@@ -24,27 +24,27 @@ async function isAdminOrLoginRequest() {
   return pathname.startsWith("/admin") || pathname === "/login";
 }
 
+async function isPlatformPreviewRequest() {
+  return (await getRequestPath()) === "/platform-preview";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   if (await isAdminOrLoginRequest()) {
-    return {
-      title: "همسة مزاج - الإدارة",
-      description: "لوحة إدارة همسة مزاج.",
-    };
+    return { title: "همسة مزاج - الإدارة", description: "لوحة إدارة همسة مزاج." };
+  }
+
+  if (await isPlatformPreviewRequest()) {
+    return { title: "معاينة المنصة - همسة مزاج", description: "معاينة فعلية لأساسيات المنصة العامة." };
   }
 
   const cafe = await getActiveCafeServer(null, { includeInactive: true });
-
   if (cafe && !cafe.is_active) {
-    return {
-      title: `${cafe.name} - متوقف مؤقتًا`,
-      description: `${cafe.name} متوقف مؤقتًا حاليًا.`,
-    };
+    return { title: `${cafe.name} - متوقف مؤقتًا`, description: `${cafe.name} متوقف مؤقتًا حاليًا.` };
   }
 
   const settings = await getCafeSettings();
   const cafeName = settings?.cafe_name || cafe?.name || "همسة مزاج";
   const description = settings?.description || `${cafeName} - مقهى وجلسات راقية وتجربة مميزة.`;
-
   return { title: cafeName, description };
 }
 
@@ -63,6 +63,40 @@ function InactiveCafePage({ cafeName }: { cafeName: string }) {
   );
 }
 
+const GLOBAL_KEYS = [
+  "primary_color", "background_color", "surface_color", "typography",
+  "hero_enabled", "hero_title", "hero_subtitle", "hero_description", "hero_badge",
+  "hero_primary_enabled", "hero_primary_text", "hero_primary_url",
+  "hero_secondary_enabled", "hero_secondary_text", "hero_secondary_url",
+  "featured_enabled", "featured_title", "featured_description", "featured_limit",
+  "why_enabled", "why_title", "why_description",
+  "matches_enabled", "matches_title", "matches_description",
+  "gallery_enabled", "gallery_title", "gallery_description",
+  "testimonials_enabled", "testimonials_title", "testimonials_description",
+  "contact_enabled", "contact_title", "contact_description",
+  "footer_enabled", "footer_description",
+  "show_phone", "show_address", "show_opening_hours", "show_social_links", "show_map",
+  "section_order", "show_site_name", "show_tagline", "show_site_description", "show_logo",
+  "show_hero_badge", "show_hero_title", "show_hero_subtitle", "show_hero_description", "show_hero_primary_button", "show_hero_secondary_button",
+  "show_featured_badge", "show_featured_title", "show_featured_description", "show_featured_products", "show_featured_prices", "show_featured_button",
+  "show_why_title", "show_why_description", "show_why_features",
+  "show_matches_title", "show_matches_description", "show_matches_list", "show_matches_button",
+  "show_gallery_title", "show_gallery_description", "show_gallery_images", "show_gallery_button",
+  "show_testimonials_title", "show_testimonials_description", "show_testimonials_list",
+  "show_contact_title", "show_contact_description", "show_contact_address", "show_contact_phone", "show_contact_hours", "show_contact_map", "show_contact_social_links",
+  "show_footer_description", "show_footer_links", "show_footer_contact", "show_footer_social_links", "show_footer_copyright",
+] as const;
+
+function applyPlatformFoundation(siteControl: any, foundation: Record<string, any>) {
+  const merged = { ...siteControl };
+  for (const key of GLOBAL_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(foundation, key)) {
+      merged[key] = foundation[key];
+    }
+  }
+  return merged;
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   if (await isAdminOrLoginRequest()) {
     return (
@@ -72,14 +106,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
+  const platformPreview = await isPlatformPreviewRequest();
   const activeCafe = await getActiveCafeServer(null, { includeInactive: true });
 
-  if (activeCafe && !activeCafe.is_active) {
+  if (activeCafe && !activeCafe.is_active && !platformPreview) {
     return (
       <html lang="ar" dir="rtl">
-        <body className="bg-[#050505] text-white">
-          <InactiveCafePage cafeName={activeCafe.name} />
-        </body>
+        <body className="bg-[#050505] text-white"><InactiveCafePage cafeName={activeCafe.name} /></body>
       </html>
     );
   }
@@ -90,23 +123,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getPlatformSettings(),
   ]);
 
-  const mergedSiteControl = siteControl
-    ? {
-        ...siteControl,
-        primary_color: platform.primary_color,
-        background_color: platform.background_color,
-        surface_color: platform.surface_color,
-        typography:
-          Object.keys(platform.global_typography || {}).length > 0
-            ? (platform.global_typography as typeof siteControl.typography)
-            : siteControl.typography,
-      }
-    : siteControl;
+  let mergedSiteControl = siteControl ? applyPlatformFoundation(siteControl, platform.foundation || {}) : siteControl;
+
+  let previewSettings = settings;
+  if (platformPreview) {
+    const preview = platform.preview_assets || {};
+    previewSettings = settings
+      ? {
+          ...settings,
+          logo_url: preview.logo || settings.logo_url,
+        }
+      : settings;
+
+    if (mergedSiteControl) {
+      mergedSiteControl = {
+        ...mergedSiteControl,
+        hero_background_url: preview.hero || mergedSiteControl.hero_background_url,
+      };
+    }
+  }
 
   return (
     <html lang="ar" dir="rtl">
       <body className="bg-[#050505] text-white">
-        <PublicShell settings={settings} siteControl={mergedSiteControl}>
+        <PublicShell settings={previewSettings} siteControl={mergedSiteControl}>
           {children}
         </PublicShell>
       </body>
