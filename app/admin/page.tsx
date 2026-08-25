@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -89,7 +87,6 @@ export default async function AdminHomePage({
       className="min-h-screen bg-[#06070b] text-white"
     >
       <div className="mx-auto max-w-7xl px-5 py-7 sm:px-7 lg:px-10">
-        {/* الرأس */}
         <header className="overflow-hidden rounded-[2rem] border border-yellow-500/20 bg-gradient-to-br from-[#15110a] via-[#0e1118] to-[#090a0e] p-6 shadow-2xl sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
@@ -103,7 +100,7 @@ export default async function AdminHomePage({
                 </div>
 
                 <h1 className="text-3xl font-black sm:text-4xl">
-                  إدارة مقهى همسة مزاج
+                  إدارة المقهى
                 </h1>
 
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-400 sm:text-base">
@@ -134,7 +131,6 @@ export default async function AdminHomePage({
           </div>
         </header>
 
-        {/* نظرة سريعة */}
         <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Link
             href="/admin/settings"
@@ -191,7 +187,7 @@ export default async function AdminHomePage({
           </Link>
 
           <Link
-            href="/"
+            href={previewHref}
             target="_blank"
             className="rounded-3xl border border-white/10 bg-[#0f1118] p-5 transition hover:border-blue-500/30"
           >
@@ -210,7 +206,6 @@ export default async function AdminHomePage({
           </Link>
         </section>
 
-        {/* الإعدادات الأساسية */}
         <section className="mt-8">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
@@ -291,7 +286,6 @@ export default async function AdminHomePage({
           </div>
         </section>
 
-        {/* اختصارات */}
         <section className="mt-8">
           <div className="rounded-[2rem] border border-white/10 bg-[#0f1118] p-6">
             <div className="mb-5 flex items-center gap-3">
