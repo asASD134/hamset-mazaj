@@ -44,8 +44,10 @@ export default function AdminCafesPage() {
   const [ownerPassword, setOwnerPassword] = useState("");
 
   const [editingCafe, setEditingCafe] = useState<Cafe | null>(null);
+  const [currentOwnerEmail, setCurrentOwnerEmail] = useState<string | null>(null);
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
 
   const [archiveCafe, setArchiveCafe] = useState<Cafe | null>(null);
@@ -154,11 +156,36 @@ export default function AdminCafesPage() {
     }
   }
 
-  function openCredentials(cafe: Cafe) {
+  async function openCredentials(cafe: Cafe) {
     setEditingCafe(cafe);
+    setCurrentOwnerEmail(null);
     setEditEmail("");
     setEditPassword("");
+    setEditLoading(true);
     setNotice(null);
+
+    try {
+      const response = await fetch(`/api/admin/cafes/${cafe.id}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "تعذر تحميل بيانات الدخول الحالية.");
+      }
+
+      setCurrentOwnerEmail(data.ownerEmail ?? null);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "تعذر تحميل بيانات الدخول الحالية.",
+      });
+    } finally {
+      setEditLoading(false);
+    }
   }
 
   async function saveCredentials(event: React.FormEvent) {
@@ -190,11 +217,15 @@ export default function AdminCafesPage() {
         throw new Error(data.error || "تعذر تحديث بيانات الدخول.");
       }
 
+      const nextEmail = editEmail.trim();
+      if (nextEmail) setCurrentOwnerEmail(nextEmail);
+
       setNotice({
         type: "success",
         text: "تم تحديث بيانات دخول المقهى بنجاح.",
       });
-      setEditingCafe(null);
+      setEditEmail("");
+      setEditPassword("");
     } catch (error) {
       setNotice({
         type: "error",
@@ -297,6 +328,7 @@ export default function AdminCafesPage() {
 
         <form
           onSubmit={createCafe}
+          autoComplete="off"
           className="grid gap-4 rounded-[2rem] border border-yellow-500/20 bg-zinc-950 p-6 md:grid-cols-2"
         >
           <div className="md:col-span-2 mb-1 flex items-center gap-3">
@@ -315,6 +347,8 @@ export default function AdminCafesPage() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="اسم المقهى"
+            name="new-cafe-name"
+            autoComplete="off"
             required
             className="rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none transition focus:border-yellow-500/50"
           />
@@ -322,6 +356,8 @@ export default function AdminCafesPage() {
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="الرابط: cafe-name"
+            name="new-cafe-slug"
+            autoComplete="off"
             required
             className="rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none transition focus:border-yellow-500/50"
           />
@@ -330,6 +366,9 @@ export default function AdminCafesPage() {
             value={ownerEmail}
             onChange={(event) => setOwnerEmail(event.target.value)}
             placeholder="بريد مالك المقهى"
+            name="new-cafe-owner-email"
+            autoComplete="off"
+            data-lpignore="true"
             required
             className="rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none transition focus:border-yellow-500/50"
           />
@@ -338,6 +377,8 @@ export default function AdminCafesPage() {
             value={ownerPassword}
             onChange={(event) => setOwnerPassword(event.target.value)}
             placeholder="كلمة مرور المالك (8+ أحرف)"
+            name="new-cafe-owner-password"
+            autoComplete="new-password"
             minLength={8}
             required
             className="rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none transition focus:border-yellow-500/50"
@@ -455,7 +496,7 @@ export default function AdminCafesPage() {
                     </button>
 
                     <button
-                      onClick={() => openCredentials(cafe)}
+                      onClick={() => void openCredentials(cafe)}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-500/20 py-3 text-sm font-bold text-violet-300 transition hover:bg-violet-500/10"
                     >
                       <KeyRound size={16} />
@@ -506,7 +547,7 @@ export default function AdminCafesPage() {
                 </div>
                 <h2 className="mt-2 text-2xl font-black">{editingCafe.name}</h2>
                 <p className="mt-2 text-sm text-zinc-500">
-                  لا نطلب الإيميل أو كلمة السر القديمة. املأ فقط ما تريد تغييره.
+                  هذا هو حساب دخول المقهى فقط. لا يغيّر إيميل التواصل الظاهر على الموقع.
                 </p>
               </div>
               <button
@@ -518,7 +559,18 @@ export default function AdminCafesPage() {
               </button>
             </div>
 
-            <form onSubmit={saveCredentials} className="mt-6 space-y-4">
+            <div className="mt-5 rounded-2xl border border-white/10 bg-zinc-950 p-4">
+              <div className="text-xs font-bold text-zinc-500">الإيميل الحالي للحساب</div>
+              <div className="mt-2 break-all text-sm font-black text-white">
+                {editLoading ? "جارٍ تحميل الإيميل الحالي..." : currentOwnerEmail || "لا يوجد إيميل مرتبط"}
+              </div>
+            </div>
+
+            <form
+              onSubmit={saveCredentials}
+              className="mt-6 space-y-4"
+              autoComplete="off"
+            >
               <div>
                 <label className="mb-2 block text-sm font-bold text-zinc-300">
                   الإيميل الجديد
@@ -527,7 +579,11 @@ export default function AdminCafesPage() {
                   type="email"
                   value={editEmail}
                   onChange={(event) => setEditEmail(event.target.value)}
-                  placeholder="اتركه فارغًا إذا لا تريد تغييره"
+                  placeholder="اكتب الإيميل الجديد فقط"
+                  name={`new-owner-email-${editingCafe.id}`}
+                  autoComplete="off"
+                  data-lpignore="true"
+                  spellCheck={false}
                   className="w-full rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none focus:border-violet-500/50"
                 />
               </div>
@@ -540,15 +596,21 @@ export default function AdminCafesPage() {
                   type="password"
                   value={editPassword}
                   onChange={(event) => setEditPassword(event.target.value)}
-                  placeholder="اتركها فارغة إذا لا تريد تغييرها"
+                  placeholder="اكتب كلمة السر الجديدة فقط"
+                  name={`new-owner-password-${editingCafe.id}`}
+                  autoComplete="new-password"
                   className="w-full rounded-xl border border-white/10 bg-zinc-900 p-3 outline-none focus:border-violet-500/50"
                 />
+              </div>
+
+              <div className="rounded-xl border border-blue-500/10 bg-blue-500/5 p-3 text-xs leading-6 text-blue-200">
+                تغيير بيانات الدخول هنا يؤثر على هذا المقهى وحده، لأن الحساب مرتبط بمعرف المقهى الحالي على الخادم.
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={editSaving}
+                  disabled={editSaving || editLoading}
                   className="flex-1 rounded-xl bg-violet-500 px-5 py-3 font-black text-white transition hover:bg-violet-400 disabled:opacity-50"
                 >
                   {editSaving ? "جارٍ الحفظ..." : "حفظ بيانات الدخول"}
