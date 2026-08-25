@@ -8,6 +8,7 @@ import {
 } from "next/server";
 
 const REQUEST_CAFE_HEADER = "x-active-cafe-context";
+const REQUEST_PATH_HEADER = "x-request-pathname";
 const CAFE_QUERY_PARAM = "cafe";
 const COOKIE_NAME = "active_cafe_context";
 const DEFAULT_CAFE_SLUG = "hamset-mazaj";
@@ -45,8 +46,6 @@ export async function updateSession(
   const refererCafe = explicitCafe || getCafeFromReferer(request);
   const resolvedCafe = refererCafe || DEFAULT_CAFE_SLUG;
 
-  // Every public/admin navigation keeps the cafe identity in the URL.
-  // This prevents two browser tabs from changing each other's cafe context.
   if (
     !explicitCafe &&
     refererCafe &&
@@ -58,6 +57,7 @@ export async function updateSession(
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(REQUEST_CAFE_HEADER, resolvedCafe);
+  requestHeaders.set(REQUEST_PATH_HEADER, request.nextUrl.pathname);
 
   const response = NextResponse.next({
     request: {
