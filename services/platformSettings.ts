@@ -7,6 +7,9 @@ export type PlatformSettings = {
   background_color: string;
   surface_color: string;
   global_typography: Record<string, unknown>;
+  foundation: Record<string, unknown>;
+  preview_assets: Record<string, unknown>;
+  version: string;
   updated_at: string;
 };
 
@@ -15,6 +18,9 @@ const DEFAULTS = {
   background_color: "#0A0A0A",
   surface_color: "#121212",
   global_typography: {},
+  foundation: {},
+  preview_assets: {},
+  version: "1.0.0",
 } as const;
 
 export async function getPlatformSettings(): Promise<PlatformSettings> {
