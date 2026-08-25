@@ -1,11 +1,4 @@
-import {
-  createServerClient,
-} from "@supabase/ssr";
-
-import {
-  NextResponse,
-  type NextRequest,
-} from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const REQUEST_CAFE_HEADER = "x-active-cafe-context";
 const REQUEST_PATH_HEADER = "x-request-pathname";
@@ -37,20 +30,13 @@ function shouldPreserveCafeInUrl(request: NextRequest) {
   return true;
 }
 
-export async function updateSession(
-  request: NextRequest
-) {
+export async function updateSession(request: NextRequest) {
   const url = request.nextUrl.clone();
-
   const explicitCafe = url.searchParams.get(CAFE_QUERY_PARAM);
   const refererCafe = explicitCafe || getCafeFromReferer(request);
   const resolvedCafe = refererCafe || DEFAULT_CAFE_SLUG;
 
-  if (
-    !explicitCafe &&
-    refererCafe &&
-    shouldPreserveCafeInUrl(request)
-  ) {
+  if (!explicitCafe && refererCafe && shouldPreserveCafeInUrl(request)) {
     url.searchParams.set(CAFE_QUERY_PARAM, refererCafe);
     return NextResponse.redirect(url);
   }
@@ -60,9 +46,7 @@ export async function updateSession(
   requestHeaders.set(REQUEST_PATH_HEADER, request.nextUrl.pathname);
 
   const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
 
   if (explicitCafe) {
@@ -74,41 +58,8 @@ export async function updateSession(
     });
   }
 
-  const supabase =
-    createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(
-              ({
-                name,
-                value,
-                options,
-              }) => {
-                request.cookies.set(
-                  name,
-                  value
-                );
-
-                response.cookies.set(
-                  name,
-                  value,
-                  options
-                );
-              }
-            );
-          },
-        },
-      }
-    );
-
-  await supabase.auth.getClaims();
-
+  // Authentication is checked by the server layouts/API routes that actually
+  // need it. Do not perform a remote Supabase auth call on every navigation;
+  // that was making local admin pages wait on the network before rendering.
   return response;
 }
