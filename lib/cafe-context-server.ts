@@ -16,10 +16,13 @@ function looksLikeUuid(value: string | null): value is string {
   return !!value && /^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(value);
 }
 
-export async function getActiveCafeServer(): Promise<ActiveCafe | null> {
+export async function getActiveCafeServer(
+  requestedOverride?: string | null
+): Promise<ActiveCafe | null> {
   const headerStore = await headers();
   const cookieStore = await cookies();
   const requested =
+    requestedOverride ||
     headerStore.get(REQUEST_CAFE_HEADER) ||
     cookieStore.get(COOKIE_NAME)?.value ||
     DEFAULT_CAFE_SLUG;
@@ -47,8 +50,6 @@ export async function getActiveCafeServer(): Promise<ActiveCafe | null> {
 
     if (allowedCafeIds.length === 0) return null;
 
-    // Normal cafe owners/managers may never inherit a cafe context
-    // from another account, browser tab, cookie, or stale local storage.
     if (!allowedCafeIds.includes(requested)) {
       return getCafeById(supabase, allowedCafeIds[0]);
     }
