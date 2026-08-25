@@ -37,12 +37,22 @@ async function getAllowedCafeIds() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { userId: null, isSystemAdmin: false, cafeIds: [] as string[] };
+  if (!user) {
+    return {
+      userId: null,
+      isSystemAdmin: false,
+      cafeIds: [] as string[],
+    };
+  }
 
   const { data: isSystemAdmin } = await supabase.rpc("is_system_admin");
 
   if (isSystemAdmin) {
-    return { userId: user.id, isSystemAdmin: true, cafeIds: [] as string[] };
+    return {
+      userId: user.id,
+      isSystemAdmin: true,
+      cafeIds: [] as string[],
+    };
   }
 
   const { data: memberships, error } = await supabase
@@ -59,19 +69,29 @@ async function getAllowedCafeIds() {
   };
 }
 
-export async function getClientCafeId(): Promise<string> {
+function getRequestedContext() {
   const fromUrl = getUrlCafeContext();
 
-  // When an admin page explicitly selects a cafe, remember that selection
-  // for client-side preview/navigation to the public site.
-  if (fromUrl && isAdminPath()) {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, fromUrl);
-    } catch {}
+  // Admin pages may remember the selected cafe for navigation between admin
+  // screens. Public pages must never inherit the admin's last selected cafe.
+  if (isAdminPath()) {
+    if (fromUrl) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, fromUrl);
+      } catch {}
+      return fromUrl;
+    }
+
+    return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
   }
 
-  const stored = readStorage() || readCookie(COOKIE_NAME);
-  const requested = fromUrl || stored || DEFAULT_CAFE_SLUG;
+  // On the public site, the cafe is determined by the URL. This prevents one
+  // cafe's admin context from leaking into another cafe in the same browser.
+  return fromUrl || DEFAULT_CAFE_SLUG;
+}
+
+export async function getClientCafeId(): Promise<string> {
+  const requested = getRequestedContext();
   const context = await getAllowedCafeIds();
 
   if (context.userId && !context.isSystemAdmin) {
@@ -79,8 +99,6 @@ export async function getClientCafeId(): Promise<string> {
       throw new Error("لم يتم ربط هذا الحساب بأي مقهى.");
     }
 
-    // Tenant users are always pinned to one of their own cafes.
-    // A stale URL/cookie can never switch them to another cafe.
     if (!context.cafeIds.includes(requested)) {
       return context.cafeIds[0];
     }
@@ -112,12 +130,5 @@ export async function getClientCafeId(): Promise<string> {
 }
 
 export function getClientCafeContext() {
-  const fromUrl = getUrlCafeContext();
-  if (fromUrl) return fromUrl;
-
-  if (isAdminPath()) {
-    return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
-  }
-
-  return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
+  return getRequestedContext();
 }
