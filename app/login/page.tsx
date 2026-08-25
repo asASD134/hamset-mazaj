@@ -35,7 +35,8 @@ export default function LoginPage() {
     const { data: isSystemAdmin } = await supabase.rpc("is_system_admin");
 
     if (isSystemAdmin) {
-      window.location.assign("/admin?cafe=hamset-mazaj");
+      // System administrators manage all cafes, so open the cafe manager directly.
+      window.location.assign("/admin/cafes");
       return;
     }
 
