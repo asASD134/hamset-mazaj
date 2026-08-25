@@ -1,7 +1,7 @@
-import Image from "next/image";
 import getCafeSettings from "@/lib/getCafeSettings";
 import { getActiveCafeServer } from "@/lib/cafe-context-server";
 import { createClient } from "@/lib/supabase/server";
+import GalleryLightbox from "@/components/gallery/GalleryLightbox";
 
 export default async function GalleryPage({
   searchParams,
@@ -50,24 +50,7 @@ export default async function GalleryPage({
             لا توجد صور في المعرض حاليًا.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {images.map((src, index) => (
-              <div
-                key={`${src}-${index}`}
-                className="relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-zinc-900"
-              >
-                <div className="relative aspect-[4/3] w-full">
-                  <Image
-                    src={src}
-                    alt={`صورة ${index + 1} - معرض ${cafeName}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <GalleryLightbox images={images} cafeName={cafeName} />
         )}
       </section>
     </main>
