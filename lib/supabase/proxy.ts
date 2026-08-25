@@ -33,7 +33,11 @@ function shouldPreserveCafeInUrl(request: NextRequest) {
 
 function shouldRefreshAuth(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  return pathname.startsWith("/admin") || pathname.startsWith("/api/admin/") || pathname === "/login";
+  return (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin/") ||
+    pathname === "/login"
+  );
 }
 
 export async function updateSession(request: NextRequest) {
@@ -51,21 +55,13 @@ export async function updateSession(request: NextRequest) {
   requestHeaders.set(REQUEST_CAFE_HEADER, resolvedCafe);
   requestHeaders.set(REQUEST_PATH_HEADER, request.nextUrl.pathname);
 
-  let response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-
-  if (explicitCafe) {
-    response.cookies.set(COOKIE_NAME, explicitCafe, {
-      httpOnly: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
+  const makeResponse = () =>
+    NextResponse.next({
+      request: { headers: requestHeaders },
     });
-  }
 
-  // Refresh the Supabase SSR session only where authentication matters.
-  // Public pages stay fast and avoid a remote auth round-trip on every request.
+  let response = makeResponse();
+
   if (shouldRefreshAuth(request)) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,32 +72,33 @@ export async function updateSession(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
+            // Update the incoming request cookie jar so downstream server
+            // handlers can see the refreshed auth session immediately.
             cookiesToSet.forEach(({ name, value }) => {
               request.cookies.set(name, value);
             });
 
-            response = NextResponse.next({
-              request: { headers: requestHeaders },
-            });
-
+            // Rebuild the response with the updated request headers and then
+            // copy all cookies back to the browser.
+            response = makeResponse();
             cookiesToSet.forEach(({ name, value, options }) => {
               response.cookies.set(name, value, options);
             });
-
-            if (explicitCafe) {
-              response.cookies.set(COOKIE_NAME, explicitCafe, {
-                httpOnly: false,
-                sameSite: "lax",
-                path: "/",
-                maxAge: 60 * 60 * 24 * 30,
-              });
-            }
           },
         },
       }
     );
 
     await supabase.auth.getUser();
+  }
+
+  if (explicitCafe) {
+    response.cookies.set(COOKIE_NAME, explicitCafe, {
+      httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
   }
 
   return response;
