@@ -43,9 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const settings = await getCafeSettings();
   const cafeName = settings?.cafe_name || cafe?.name || "همسة مزاج";
-  const description =
-    settings?.description ||
-    `${cafeName} - مقهى وجلسات راقية وتجربة مميزة.`;
+  const description = settings?.description || `${cafeName} - مقهى وجلسات راقية وتجربة مميزة.`;
 
   return { title: cafeName, description };
 }
@@ -100,7 +98,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         surface_color: platform.surface_color,
         typography:
           Object.keys(platform.global_typography || {}).length > 0
-            ? platform.global_typography
+            ? (platform.global_typography as typeof siteControl.typography)
             : siteControl.typography,
       }
     : siteControl;
