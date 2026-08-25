@@ -17,8 +17,10 @@ function looksLikeUuid(value: string | null): value is string {
 }
 
 export async function getActiveCafeServer(
-  requestedOverride?: string | null
+  requestedOverride?: string | null,
+  options?: { includeInactive?: boolean }
 ): Promise<ActiveCafe | null> {
+  const includeInactive = options?.includeInactive === true;
   const headerStore = await headers();
   const cookieStore = await cookies();
   const requested =
@@ -51,34 +53,43 @@ export async function getActiveCafeServer(
     if (allowedCafeIds.length === 0) return null;
 
     if (!allowedCafeIds.includes(requested)) {
-      return getCafeById(supabase, allowedCafeIds[0]);
+      return getCafeById(supabase, allowedCafeIds[0], includeInactive);
     }
   }
 
   if (looksLikeUuid(requested)) {
-    return getCafeById(supabase, requested);
+    return getCafeById(supabase, requested, includeInactive);
   }
 
-  const { data } = await supabase
+  let query = supabase
     .from("cafes")
     .select("id,name,slug,is_active")
     .eq("slug", requested)
-    .eq("is_active", true)
     .maybeSingle();
 
+  if (!includeInactive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data } = await query;
   return (data as ActiveCafe | null) ?? null;
 }
 
 async function getCafeById(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  id: string
+  id: string,
+  includeInactive = false
 ): Promise<ActiveCafe | null> {
-  const { data } = await supabase
+  let query = supabase
     .from("cafes")
     .select("id,name,slug,is_active")
     .eq("id", id)
-    .eq("is_active", true)
     .maybeSingle();
 
+  if (!includeInactive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data } = await query;
   return (data as ActiveCafe | null) ?? null;
 }
