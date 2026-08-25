@@ -4,10 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const TEMPLATE_SLUG = "__platform_template__";
 
-// IMPORTANT:
-// Only values that define the shared platform/system behavior belong here.
-// User-entered cafe content (names, titles, descriptions, contact data,
-// images, logos, gallery contents, menu data, etc.) MUST stay cafe-specific.
+// Shared system behavior only. Any text/content entered by a cafe owner
+// remains cafe-specific and is never copied from the platform template.
 const GLOBAL_SITE_KEYS = [
   "primary_color",
   "background_color",
@@ -15,7 +13,6 @@ const GLOBAL_SITE_KEYS = [
   "typography",
   "section_order",
 
-  // Shared section structure / feature availability
   "hero_enabled",
   "featured_enabled",
   "why_enabled",
@@ -25,7 +22,7 @@ const GLOBAL_SITE_KEYS = [
   "contact_enabled",
   "footer_enabled",
 
-  // Shared visibility / behavior switches
+  // Shared visibility/behavior switches only.
   "show_phone",
   "show_address",
   "show_opening_hours",
@@ -108,9 +105,7 @@ export async function POST() {
   }
 
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const key of GLOBAL_SITE_KEYS) {
-    update[key] = templateSite[key];
-  }
+  for (const key of GLOBAL_SITE_KEYS) update[key] = templateSite[key];
 
   const { data: cafes, error: cafesError } = await admin
     .from("cafes")
@@ -118,9 +113,7 @@ export async function POST() {
     .neq("id", templateCafe.id)
     .eq("is_active", true);
 
-  if (cafesError) {
-    return NextResponse.json({ error: cafesError.message }, { status: 500 });
-  }
+  if (cafesError) return NextResponse.json({ error: cafesError.message }, { status: 500 });
 
   let updatedCount = 0;
   for (const cafe of cafes ?? []) {
@@ -130,10 +123,7 @@ export async function POST() {
       .eq("cafe_id", cafe.id);
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message, updatedCount },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message, updatedCount }, { status: 500 });
     }
 
     updatedCount += 1;
