@@ -61,9 +61,16 @@ async function getAllowedCafeIds() {
 
 export async function getClientCafeId(): Promise<string> {
   const fromUrl = getUrlCafeContext();
-  const stored = isAdminPath()
-    ? readStorage() || readCookie(COOKIE_NAME)
-    : null;
+
+  // When an admin page explicitly selects a cafe, remember that selection
+  // for client-side preview/navigation to the public site.
+  if (fromUrl && isAdminPath()) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, fromUrl);
+    } catch {}
+  }
+
+  const stored = readStorage() || readCookie(COOKIE_NAME);
   const requested = fromUrl || stored || DEFAULT_CAFE_SLUG;
   const context = await getAllowedCafeIds();
 
@@ -112,5 +119,5 @@ export function getClientCafeContext() {
     return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
   }
 
-  return DEFAULT_CAFE_SLUG;
+  return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
 }
