@@ -22,10 +22,6 @@ function readCookie(name: string) {
   return value ? decodeURIComponent(value) : null;
 }
 
-function looksLikeUuid(value: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(value);
-}
-
 function getUrlCafeContext() {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get("cafe");
@@ -36,36 +32,76 @@ function isAdminPath() {
   return window.location.pathname.startsWith("/admin");
 }
 
+async function getAllowedCafeIds() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { userId: null, isSystemAdmin: false, cafeIds: [] as string[] };
+
+  const { data: isSystemAdmin } = await supabase.rpc("is_system_admin");
+
+  if (isSystemAdmin) {
+    return { userId: user.id, isSystemAdmin: true, cafeIds: [] as string[] };
+  }
+
+  const { data: memberships, error } = await supabase
+    .from("cafe_members")
+    .select("cafe_id")
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  return {
+    userId: user.id,
+    isSystemAdmin: false,
+    cafeIds: (memberships ?? []).map((row) => row.cafe_id as string),
+  };
+}
+
 export async function getClientCafeId(): Promise<string> {
   const fromUrl = getUrlCafeContext();
-  const context =
-    fromUrl ||
-    (isAdminPath() ? readStorage() || readCookie(COOKIE_NAME) : null) ||
-    DEFAULT_CAFE_SLUG;
+  const stored = isAdminPath()
+    ? readStorage() || readCookie(COOKIE_NAME)
+    : null;
+  const requested = fromUrl || stored || DEFAULT_CAFE_SLUG;
+  const context = await getAllowedCafeIds();
 
-  if (looksLikeUuid(context)) return context;
+  if (context.userId && !context.isSystemAdmin) {
+    if (context.cafeIds.length === 0) {
+      throw new Error("لم يتم ربط هذا الحساب بأي مقهى.");
+    }
+
+    // Tenant users are always pinned to one of their own cafes.
+    // A stale URL/cookie can never switch them to another cafe.
+    if (!context.cafeIds.includes(requested)) {
+      return context.cafeIds[0];
+    }
+  }
+
+  if (/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(requested)) {
+    const { data, error } = await supabase
+      .from("cafes")
+      .select("id")
+      .eq("id", requested)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (data?.id) return data.id;
+  }
 
   const { data, error } = await supabase
     .from("cafes")
     .select("id")
-    .eq("slug", context)
+    .eq("slug", requested)
     .eq("is_active", true)
-    .single();
+    .maybeSingle();
 
-  if (error || !data?.id) {
-    if (context !== DEFAULT_CAFE_SLUG) {
-      const fallback = await supabase
-        .from("cafes")
-        .select("id")
-        .eq("slug", DEFAULT_CAFE_SLUG)
-        .eq("is_active", true)
-        .single();
-      if (fallback.data?.id) return fallback.data.id;
-    }
-    throw new Error("لم يتم العثور على المقهى المحدد.");
-  }
+  if (error) throw error;
+  if (data?.id) return data.id;
 
-  return data.id;
+  throw new Error("لم يتم العثور على المقهى المحدد.");
 }
 
 export function getClientCafeContext() {
