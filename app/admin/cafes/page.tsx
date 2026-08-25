@@ -11,7 +11,6 @@ import {
   Pencil,
   Play,
   Power,
-  RotateCcw,
   ShieldCheck,
   Store,
   Trash2,
