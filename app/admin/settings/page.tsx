@@ -12,6 +12,7 @@ import {
   Store,
   Home,
   Globe2,
+  Star,
 } from "lucide-react";
 
 import {
@@ -467,9 +468,41 @@ export default function AdminSettingsPage() {
 
         {activeTab === "home" && (
           <div>
-            <div className="mb-6 flex justify-end">
-              <a href="/admin/cafes" className="rounded-xl border border-yellow-500/30 px-4 py-3 font-bold text-yellow-400 hover:bg-yellow-500 hover:text-black">إدارة المقاهي / السوبر أدمن</a>
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end">
+              <a
+                href="/admin/cafes"
+                className="rounded-xl border border-yellow-500/30 px-4 py-3 font-bold text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                إدارة المقاهي / السوبر أدمن
+              </a>
             </div>
+
+            <section className="mb-6 rounded-3xl border border-yellow-500/20 bg-yellow-500/5 p-5 sm:p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-yellow-500 text-black">
+                    <Star size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white">
+                      اختيار صور الصفحة الرئيسية
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-zinc-400">
+                      اختر الصور التي تريد ظهورها في الصفحة الرئيسية. النجمة تعني ظهور الصورة، وإزالتها تخفيها من الرئيسية وتبقيها في المعرض.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href="/admin/gallery-home"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-yellow-500 px-5 py-3 font-black text-black transition hover:bg-yellow-400"
+                >
+                  <Star size={18} />
+                  إدارة نجوم الصور
+                </a>
+              </div>
+            </section>
+
             <HomeSettingsPanel />
           </div>
         )}
@@ -518,203 +551,23 @@ export default function AdminSettingsPage() {
                   onChange={setNewSocialUrl}
                   placeholder="https://instagram.com/..."
                 />
-              </div>
 
-              <button
-                type="button"
-                onClick={handleAddSocialLink}
-                disabled={socialLoading}
-                className="mt-5 w-full rounded-xl bg-yellow-500 px-6 py-3 font-black text-black transition hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {socialLoading
-                  ? "جارٍ الإضافة..."
-                  : "➕ إضافة الموقع"}
-              </button>
-            </div>
-
-            {socialMessage && (
-              <div className="mt-5 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-yellow-400">
-                {socialMessage}
-              </div>
-            )}
-
-            <div className="mt-6 space-y-4">
-              {socialLinks.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-zinc-700 bg-black/20 p-10 text-center">
-                  <LinkIcon
-                    size={38}
-                    className="mx-auto mb-4 text-zinc-600"
-                  />
-                  <p className="font-bold text-zinc-300">
-                    لا توجد مواقع مضافة.
-                  </p>
+                <div className="md:col-span-2">
+                  <button
+                    type="button"
+                    onClick={handleAddSocialLink}
+                    disabled={socialLoading}
+                    className="w-full rounded-xl bg-yellow-500 px-5 py-3 font-black text-black transition hover:bg-yellow-400 disabled:opacity-60"
+                  >
+                    {socialLoading ? "جارٍ الحفظ..." : "إضافة الموقع"}
+                  </button>
                 </div>
-              ) : (
-                socialLinks
-                  .slice()
-                  .sort(
-                    (a, b) =>
-                      a.sort_order - b.sort_order
-                  )
-                  .map((link) => {
-                    const editing =
-                      editingSocialId === link.id;
-                    const icon = getSocialIcon(
-                      link.name,
-                      link.url
-                    );
-                    const favicon = getFaviconUrl(
-                      link.url
-                    );
+              </div>
 
-                    return (
-                      <div
-                        key={link.id}
-                        className="rounded-2xl border border-white/10 bg-black/20 p-5"
-                      >
-                        {editing ? (
-                          <div className="space-y-5">
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <Field
-                                label="اسم الموقع"
-                                value={editingSocialName}
-                                onChange={setEditingSocialName}
-                              />
-                              <Field
-                                label="الرابط"
-                                value={editingSocialUrl}
-                                onChange={setEditingSocialUrl}
-                              />
-                            </div>
-                            <div className="flex flex-wrap gap-3">
-                              <button
-                                type="button"
-                                onClick={handleUpdateSocialLink}
-                                disabled={socialLoading}
-                                className="rounded-xl bg-yellow-500 px-5 py-3 font-bold text-black transition hover:bg-yellow-400 disabled:opacity-60"
-                              >
-                                حفظ التعديل
-                              </button>
-                              <button
-                                type="button"
-                                onClick={cancelEditingSocial}
-                                className="rounded-xl border border-zinc-700 px-5 py-3 font-bold text-zinc-300 transition hover:bg-zinc-800"
-                              >
-                                إلغاء
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex min-w-0 items-center gap-4">
-                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white">
-                                {favicon ? (
-                                  <img
-                                    src={favicon}
-                                    alt=""
-                                    className="h-8 w-8 rounded"
-                                  />
-                                ) : (
-                                  <span className="text-2xl">
-                                    {icon}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="min-w-0">
-                                <h3 className="font-bold text-white">
-                                  {link.name}
-                                </h3>
-                                <a
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-1 block max-w-[550px] truncate text-sm text-zinc-500 transition hover:text-yellow-400"
-                                >
-                                  {link.url}
-                                </a>
-                                <div className="mt-2">
-                                  <span
-                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                                      link.is_active
-                                        ? "bg-green-500/10 text-green-400"
-                                        : "bg-zinc-800 text-zinc-500"
-                                    }`}
-                                  >
-                                    {link.is_active
-                                      ? "ظاهر في الموقع"
-                                      : "مخفي عن الموقع"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleToggleSocialLink(
-                                    link
-                                  )
-                                }
-                                disabled={socialLoading}
-                                className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 font-bold text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400 disabled:opacity-60"
-                              >
-                                {link.is_active ? (
-                                  <>
-                                    <EyeOff size={18} />
-                                    إخفاء
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye size={18} />
-                                    إظهار
-                                  </>
-                                )}
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  startEditingSocial(
-                                    link
-                                  )
-                                }
-                                className="inline-flex items-center gap-2 rounded-xl border border-blue-500/30 px-4 py-3 font-bold text-blue-400 transition hover:bg-blue-500/10"
-                              >
-                                <Pencil size={18} />
-                                تعديل
-                              </button>
-
-                              <a
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 font-bold text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
-                              >
-                                <ExternalLink size={18} />
-                                فتح
-                              </a>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleDeleteSocialLink(
-                                    link.id
-                                  )
-                                }
-                                disabled={socialLoading}
-                                className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 px-4 py-3 font-bold text-red-400 transition hover:bg-red-500/10 disabled:opacity-60"
-                              >
-                                <Trash2 size={18} />
-                                حذف
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
+              {socialMessage && (
+                <p className="mt-4 text-sm font-bold text-yellow-400">
+                  {socialMessage}
+                </p>
               )}
             </div>
           </section>
@@ -739,11 +592,12 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 font-bold transition ${
+      className={[
+        "inline-flex items-center gap-2 rounded-xl px-5 py-3 font-black transition",
         active
           ? "bg-yellow-500 text-black"
-          : "text-zinc-400 hover:bg-white/5 hover:text-white"
-      }`}
+          : "text-zinc-400 hover:bg-white/5 hover:text-white",
+      ].join(" ")}
     >
       {icon}
       {label}
@@ -763,17 +617,17 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <div>
-      <label className="mb-2 block text-sm font-bold text-zinc-300">
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-zinc-300">
         {label}
-      </label>
+      </span>
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-yellow-500"
+        className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-yellow-500"
       />
-    </div>
+    </label>
   );
 }
 
@@ -789,17 +643,17 @@ function TextArea({
   placeholder?: string;
 }) {
   return (
-    <div>
-      <label className="mb-2 block text-sm font-bold text-zinc-300">
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-zinc-300">
         {label}
-      </label>
+      </span>
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={5}
-        className="w-full resize-none rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-yellow-500"
+        className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-yellow-500"
       />
-    </div>
+    </label>
   );
 }
