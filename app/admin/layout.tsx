@@ -15,30 +15,41 @@ export default async function AdminLayout({
     error: userError,
   } = await supabase.auth.getUser();
 
-  // غير مسجل الدخول
   if (userError || !user) {
     redirect("/login");
   }
 
   const { data: isSystemAdmin } = await supabase.rpc("is_system_admin");
-  const { data: cafeIds } = await supabase.rpc("current_cafe_ids");
   const cookieStore = await cookies();
-  const activeCafe = cookieStore.get("active_cafe_context")?.value;
-  const isCafeMember = (cafeIds ?? []).length > 0;
+  const activeCafe = cookieStore.get("active_cafe_context")?.value ?? "";
 
-  if (!isSystemAdmin && !isCafeMember) {
+  if (isSystemAdmin) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-[#050505] text-white">
+        {children}
+      </div>
+    );
+  }
+
+  const { data: memberships, error: membershipError } = await supabase
+    .from("cafe_members")
+    .select("cafe_id")
+    .eq("user_id", user.id);
+
+  const cafeIds = (memberships ?? []).map((row) => row.cafe_id as string);
+
+  if (membershipError || cafeIds.length === 0) {
     redirect("/");
   }
 
-  if (!isSystemAdmin && (cafeIds ?? []).length === 1 && activeCafe !== cafeIds?.[0]) {
-    redirect(`/admin?cafe=${cafeIds?.[0]}`);
+  // A normal tenant account can only operate its own cafe.
+  // Ignore any stale cookie/localStorage context from another account.
+  if (!cafeIds.includes(activeCafe)) {
+    redirect(`/admin?cafe=${encodeURIComponent(cafeIds[0])}`);
   }
 
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen bg-[#050505] text-white"
-    >
+    <div dir="rtl" className="min-h-screen bg-[#050505] text-white">
       {children}
     </div>
   );
