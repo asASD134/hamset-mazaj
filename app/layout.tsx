@@ -32,7 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
   if (await isAdminOrLoginRequest()) {
     return { title: "همسة مزاج - الإدارة", description: "لوحة إدارة همسة مزاج." };
   }
-
   if (await isPlatformPreviewRequest()) {
     return { title: "معاينة المنصة - همسة مزاج", description: "معاينة فعلية لأساسيات المنصة العامة." };
   }
@@ -90,9 +89,7 @@ const GLOBAL_KEYS = [
 function applyPlatformFoundation(siteControl: any, foundation: Record<string, any>) {
   const merged = { ...siteControl };
   for (const key of GLOBAL_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(foundation, key)) {
-      merged[key] = foundation[key];
-    }
+    if (Object.prototype.hasOwnProperty.call(foundation, key)) merged[key] = foundation[key];
   }
   return merged;
 }
@@ -124,21 +121,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
 
   let mergedSiteControl = siteControl ? applyPlatformFoundation(siteControl, platform.foundation || {}) : siteControl;
-
   let previewSettings = settings;
+
   if (platformPreview) {
     const preview = platform.preview_assets || {};
-    previewSettings = settings
-      ? {
-          ...settings,
-          logo_url: preview.logo || settings.logo_url,
-        }
-      : settings;
-
+    previewSettings = settings ? { ...settings, logo_url: preview.logo || settings.logo_url } : settings;
     if (mergedSiteControl) {
       mergedSiteControl = {
         ...mergedSiteControl,
         hero_background_url: preview.hero || mergedSiteControl.hero_background_url,
+        gallery_images: preview.gallery ? [preview.gallery] : mergedSiteControl.gallery_images,
+        gallery_images_visible: preview.gallery ? [true] : mergedSiteControl.gallery_images_visible,
+        gallery_images_home: preview.gallery ? [true] : mergedSiteControl.gallery_images_home,
       };
     }
   }
