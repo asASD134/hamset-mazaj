@@ -6,9 +6,9 @@ import { ArrowLeft } from "lucide-react";
 
 import { useTable } from "@/context/TableContext";
 import SiteName from "@/components/SiteName";
-import { useCafeSettings } from "@/context/CafeSettingsContext";
+import { useSiteControl } from "@/context/SiteControlContext";
 
-const images = [
+const defaultImages = [
   "/images/gallery1.jpg",
   "/images/gallery2.jpg",
   "/images/gallery3.jpg",
@@ -17,15 +17,103 @@ const images = [
   "/images/gallery6.jpg",
 ];
 
+type GalleryHomeControl = {
+  gallery_images_home?: boolean[];
+};
+
 export default function GalleryPreview() {
   const { hasTable, tableNumber } = useTable();
-  const { settings } = useCafeSettings();
-
-  const cafeName =
-    settings.cafe_name || "همسة مزاج";
+  const siteControl = useSiteControl();
 
   const withTable = (path: string) =>
     hasTable ? `${path}?table=${tableNumber}` : path;
+
+  if (siteControl?.gallery_enabled === false) {
+    return null;
+  }
+
+  const showTitle =
+    siteControl?.show_gallery_title !== false;
+
+  const showDescription =
+    siteControl?.show_gallery_description !== false;
+
+  const showImages =
+    siteControl?.show_gallery_images !== false;
+
+  const showButton =
+    siteControl?.show_gallery_button !== false;
+
+  const title =
+    siteControl?.gallery_title ||
+    "أجواء همسة مزاج";
+
+  const description =
+    siteControl?.gallery_description ||
+    "شاهد مجموعة من الصور التي تعكس أجواء المقهى والجلسات الراقية.";
+
+  const hasConfiguredGallery =
+    Array.isArray(siteControl?.gallery_images);
+
+  const configuredImages =
+    hasConfiguredGallery
+      ? siteControl.gallery_images
+      : [];
+
+  /*
+   * النجمة الخاصة بالصفحة الرئيسية.
+   *
+   * لا علاقة لها بزر إظهار/إخفاء.
+   */
+  const galleryHome =
+    (siteControl as typeof siteControl &
+      GalleryHomeControl)
+      ?.gallery_images_home;
+
+  /*
+   * إذا لم توجد إعدادات النجمة بعد،
+   * نستخدم أول 6 صور كحل احتياطي.
+   */
+  const hasHomeSelection =
+    Array.isArray(galleryHome);
+
+  const images = (
+    hasConfiguredGallery
+      ? configuredImages
+      : defaultImages
+  )
+    .map((image, index) => {
+      if (!image) {
+        return null;
+      }
+
+      /*
+       * الصورة تظهر في الرئيسية فقط
+       * إذا كانت النجمة مفعلة.
+       *
+       * ونأخذ بحد أقصى 6 صور.
+       */
+      if (
+        hasHomeSelection &&
+        galleryHome[index] !== true
+      ) {
+        return null;
+      }
+
+      return {
+        image,
+        index,
+      };
+    })
+    .filter(
+      (
+        item
+      ): item is {
+        image: string;
+        index: number;
+      } => Boolean(item)
+    )
+    .slice(0, 6);
 
   return (
     <section
@@ -33,54 +121,95 @@ export default function GalleryPreview() {
       className="bg-[#0b0b0b] py-24"
     >
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-14 text-center">
-          <span className="font-bold tracking-[0.3em] text-yellow-400">
-            معرض الصور
-          </span>
 
-          <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
-            أجواء <SiteName />
-          </h2>
+        {/* عنوان المعرض */}
 
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
-            شاهد مجموعة من الصور التي تعكس أجواء المقهى والجلسات الراقية.
-          </p>
-        </div>
+        {(showTitle || showDescription) && (
+          <div className="mb-14 text-center">
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {images.map((image, index) => (
-            <div
-              key={image}
-              className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
-            >
-              <Image
-                src={image}
-                alt={`صورة ${index + 1} من معرض ${cafeName}`}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              />
-
-              <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
-
-              <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
-                <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
-                  <SiteName />
+            {showTitle && (
+              <>
+                <span className="font-bold tracking-[0.3em] text-yellow-400">
+                  معرض الصور
                 </span>
-              </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="mt-16 text-center">
-          <Link
-            href={withTable("/gallery")}
-            className="inline-flex items-center gap-3 rounded-2xl border-2 border-yellow-500 px-8 py-4 text-lg font-bold text-yellow-400 transition-all duration-300 hover:bg-yellow-500 hover:text-black"
-          >
-            عرض جميع الصور
-            <ArrowLeft size={20} />
-          </Link>
-        </div>
+                <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
+                  {title}
+                </h2>
+              </>
+            )}
+
+            {showDescription && (
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
+                {description}
+              </p>
+            )}
+
+          </div>
+        )}
+
+        {/* صور الصفحة الرئيسية */}
+
+        {showImages && (
+          <>
+            {images.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+                {images.map(
+                  ({ image, index }) => (
+                    <div
+                      key={`${image}-${index}`}
+                      className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
+                    >
+
+                      <Image
+                        src={image}
+                        alt={`صورة ${index + 1} من معرض ${title}`}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+
+                      <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
+
+                      <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
+
+                        <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
+                          <SiteName />
+                        </span>
+
+                      </div>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-white/10 bg-[#121212] p-10 text-center text-zinc-500">
+                لا توجد صور مختارة للصفحة الرئيسية حاليًا.
+              </div>
+            )}
+          </>
+        )}
+
+        {/* زر عرض المعرض الكامل */}
+
+        {showButton && (
+          <div className="mt-16 text-center">
+
+            <Link
+              href={withTable("/gallery")}
+              className="inline-flex items-center gap-3 rounded-2xl border-2 border-yellow-500 px-8 py-4 text-lg font-bold text-yellow-400 transition-all duration-300 hover:bg-yellow-500 hover:text-black"
+            >
+              عرض جميع الصور
+
+              <ArrowLeft size={20} />
+            </Link>
+
+          </div>
+        )}
+
       </div>
     </section>
   );

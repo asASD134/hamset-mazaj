@@ -1,112 +1,45 @@
-"use client";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
-import Link from "next/link";
-import SiteName from "@/components/SiteName";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [checkingSession, setCheckingSession] = useState(true);
+  const supabase = await createClient();
 
-  useEffect(() => {
-    let mounted = true;
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    async function verifySession() {
-      const { data } = await supabase.auth.getSession();
+  // غير مسجل الدخول
+  if (userError || !user) {
+    redirect("/login");
+  }
 
-      if (!mounted) return;
+  const { data: isSystemAdmin } = await supabase.rpc("is_system_admin");
+  const { data: cafeIds } = await supabase.rpc("current_cafe_ids");
+  const cookieStore = await cookies();
+  const activeCafe = cookieStore.get("active_cafe_context")?.value;
+  const isCafeMember = (cafeIds ?? []).length > 0;
 
-      if (!data?.session) {
-        router.replace("/login");
-        return;
-      }
+  if (!isSystemAdmin && !isCafeMember) {
+    redirect("/");
+  }
 
-      setCheckingSession(false);
-    }
-
-    verifySession();
-
-    return () => {
-      mounted = false;
-    };
-  }, [router]);
-
-  if (checkingSession) {
-    return null;
+  if (!isSystemAdmin && (cafeIds ?? []).length === 1 && activeCafe !== cafeIds?.[0]) {
+    redirect(`/admin?cafe=${cafeIds?.[0]}`);
   }
 
   return (
     <div
       dir="rtl"
-      className="flex min-h-screen bg-[#0b0b0b] text-white"
+      className="min-h-screen bg-[#050505] text-white"
     >
-      <aside className="w-72 shrink-0 border-l border-yellow-500/20 bg-[#141414]">
-        <div className="border-b border-yellow-500/20 p-6">
-          <h1 className="text-2xl font-bold text-yellow-400">
-            <SiteName />
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-400">
-            لوحة التحكم
-          </p>
-        </div>
-
-        <nav className="space-y-2 p-4">
-          <Link
-            href="/admin"
-            className="block rounded-lg px-4 py-3 transition hover:bg-yellow-500 hover:text-black"
-          >
-            🏠 الرئيسية
-          </Link>
-
-          <Link
-            href="/admin/orders"
-            className="block rounded-lg px-4 py-3 transition hover:bg-yellow-500 hover:text-black"
-          >
-            🧾 الطلبات
-          </Link>
-
-          <Link
-            href="/admin/menu"
-            className="block rounded-lg px-4 py-3 transition hover:bg-yellow-500 hover:text-black"
-          >
-            🍽️ المنيو
-          </Link>
-
-          <Link
-            href="/admin/categories"
-            className="block rounded-lg px-4 py-3 transition hover:bg-yellow-500 hover:text-black"
-          >
-            📂 التصنيفات
-          </Link>
-
-          <Link
-            href="/admin/tables"
-            className="block rounded-lg px-4 py-3 transition hover:bg-yellow-500 hover:text-black"
-          >
-            🪑 الطاولات
-          </Link>
-
-          <div className="my-4 border-t border-zinc-800" />
-
-          <Link
-            href="/admin/settings"
-            className="block rounded-lg border border-yellow-500/20 px-4 py-3 font-bold text-yellow-400 transition hover:bg-yellow-500 hover:text-black"
-          >
-            ⚙️ إعدادات المقهى
-          </Link>
-        </nav>
-      </aside>
-
-      <section className="min-w-0 flex-1 overflow-auto p-8">
-        {children}
-      </section>
+      {children}
     </div>
   );
 }

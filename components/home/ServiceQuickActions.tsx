@@ -1,94 +1,129 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   BellRing,
   Coffee,
   Receipt,
   Sparkles,
   UserRound,
+  ArrowLeft,
 } from "lucide-react";
 
 import { useTable } from "@/context/TableContext";
 
 const services = [
   {
+    type: "waiter",
     title: "استدعاء النادل",
+    description: "اطلب مساعدة الموظف مباشرة.",
     icon: UserRound,
-    color: "bg-yellow-500 text-black",
-    href: "/service?type=waiter",
   },
   {
+    type: "charcoal",
     title: "طلب فحم",
+    description: "أرسل طلب الفحم إلى الموظف.",
     icon: Sparkles,
-    color: "bg-orange-500 text-white",
-    href: "/service?type=charcoal",
   },
   {
+    type: "water",
     title: "طلب ماء",
+    description: "اطلب الماء بسهولة من طاولتك.",
     icon: Coffee,
-    color: "bg-sky-500 text-white",
-    href: "/service?type=water",
   },
   {
+    type: "bill",
     title: "طلب الحساب",
+    description: "اطلب الحساب عندما تكون جاهزًا.",
     icon: Receipt,
-    color: "bg-emerald-500 text-white",
-    href: "/service?type=bill",
   },
 ];
 
 export default function ServiceQuickActions() {
-  const { hasTable, tableNumber } = useTable();
+  const { hasTable, tableNumber } =
+    useTable();
 
-  if (!hasTable) return null;
+  if (!hasTable) {
+    return null;
+  }
 
-  const withTable = (path: string) =>
-    `${path}${path.includes("?") ? "&" : "?"}table=${tableNumber}`;
+  const withTable = (type: string) =>
+    `/service?type=${type}&table=${tableNumber}`;
 
   return (
-    <section className="bg-[#0b0b0b] py-20">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-14 text-center">
-          <div className="mb-5 inline-flex rounded-full bg-yellow-500/10 p-4 text-yellow-400">
-            <BellRing size={34} />
+    <section
+      dir="rtl"
+      className="relative overflow-hidden bg-[#090909] py-16 sm:py-20"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.05),transparent_40%)]" />
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
+
+        {/* رأس القسم */}
+        <div className="mb-10 flex flex-col items-center text-center">
+
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-500/20 bg-yellow-500/10 text-yellow-400">
+            <BellRing size={26} />
           </div>
 
-          <h2 className="text-4xl font-black text-white">
-            خدمات الطاولة
+          <span className="text-xs font-bold tracking-[0.2em] text-yellow-400 sm:text-sm">
+            خدمة الطاولة
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
+            اطلب خدمتك بسهولة
           </h2>
 
-          <p className="mt-4 text-zinc-400">
-            اختر الخدمة المطلوبة وسيتم إشعار الموظف مباشرة.
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
+            أنت الآن على الطاولة رقم{" "}
+            <span className="font-bold text-yellow-400">
+              {tableNumber}
+            </span>
+            . اختر الخدمة التي تحتاجها وسيصل الطلب للموظف مباشرة.
           </p>
+
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* الخدمات */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
           {services.map((service) => {
             const Icon = service.icon;
 
             return (
               <Link
-                key={service.title}
-                href={withTable(service.href)}
-                className="group rounded-3xl border border-zinc-800 bg-zinc-900 p-8 transition duration-300 hover:-translate-y-2 hover:border-yellow-500"
+                key={service.type}
+                href={withTable(
+                  service.type
+                )}
+                className="group rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-yellow-500/30 hover:bg-yellow-500/[0.04]"
               >
-                <div
-                  className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${service.color}`}
-                >
-                  <Icon size={30} />
+                <div className="flex items-start justify-between gap-4">
+
+                  <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl border border-yellow-500/20 bg-yellow-500/10 text-yellow-400 transition-all duration-300 group-hover:bg-yellow-500 group-hover:text-black">
+                    <Icon size={24} />
+                  </div>
+
+                  <ArrowLeft
+                    size={18}
+                    className="mt-2 text-zinc-600 transition-all duration-300 group-hover:-translate-x-1 group-hover:text-yellow-400"
+                  />
+
                 </div>
 
-                <h3 className="mb-3 text-2xl font-bold text-white">
+                <h3 className="mt-6 text-xl font-bold text-white">
                   {service.title}
                 </h3>
 
-                <p className="text-zinc-400">
-                  اضغط لإرسال الطلب مباشرة إلى الموظف.
+                <p className="mt-2 text-sm leading-7 text-zinc-400">
+                  {service.description}
                 </p>
+
               </Link>
             );
           })}
+
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
+import { getClientCafeId } from "@/lib/cafe-context-client";
 
 export interface Category {
   id: string;
@@ -13,90 +14,40 @@ export interface Category {
 const TABLE_NAME = "categories";
 
 export async function getCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select("*")
-    .order("sort_order", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
+  const cafeId = await getClientCafeId();
+  const { data, error } = await supabase.from(TABLE_NAME).select("*").eq("cafe_id", cafeId).order("sort_order", { ascending: true });
+  if (error) throw error;
   return (data as Category[]) ?? [];
 }
 
-export async function createCategory(
-  name: string,
-  sortOrder = 0
-): Promise<Category> {
+export async function createCategory(name: string, sortOrder = 0): Promise<Category> {
   const cleanName = name.trim();
-
-  if (!cleanName) {
-    throw new Error("اسم التصنيف مطلوب");
-  }
-
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .insert({
-      name_ar: cleanName,
-      name_en: cleanName,
-      image_url: null,
-      sort_order: sortOrder,
-      is_active: true,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
+  if (!cleanName) throw new Error("اسم التصنيف مطلوب");
+  const cafeId = await getClientCafeId();
+  const { data, error } = await supabase.from(TABLE_NAME).insert({
+    cafe_id: cafeId,
+    name_ar: cleanName,
+    name_en: cleanName,
+    image_url: null,
+    sort_order: sortOrder,
+    is_active: true,
+  }).select().single();
+  if (error) throw error;
   return data as Category;
 }
 
-export async function updateCategory(
-  id: string,
-  name: string,
-  sortOrder?: number
-): Promise<void> {
+export async function updateCategory(id: string, name: string, sortOrder?: number): Promise<void> {
   const cleanName = name.trim();
-
-  if (!cleanName) {
-    throw new Error("اسم التصنيف مطلوب");
-  }
-
-  const payload: {
-    name_ar: string;
-    name_en: string;
-    sort_order?: number;
-  } = {
-    name_ar: cleanName,
-    name_en: cleanName,
-  };
-
-  if (sortOrder !== undefined) {
-    payload.sort_order = sortOrder;
-  }
-
-  const { error } = await supabase
-    .from(TABLE_NAME)
-    .update(payload)
-    .eq("id", id);
-
-  if (error) {
-    throw error;
-  }
+  if (!cleanName) throw new Error("اسم التصنيف مطلوب");
+  const cafeId = await getClientCafeId();
+  const payload: { name_ar: string; name_en: string; sort_order?: number } = { name_ar: cleanName, name_en: cleanName };
+  if (sortOrder !== undefined) payload.sort_order = sortOrder;
+  const { error } = await supabase.from(TABLE_NAME).update(payload).eq("id", id).eq("cafe_id", cafeId);
+  if (error) throw error;
 }
 
-export async function deleteCategory(
-  id: string
-): Promise<void> {
-  const { error } = await supabase
-    .from(TABLE_NAME)
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    throw error;
-  }
+export async function deleteCategory(id: string): Promise<void> {
+  const cafeId = await getClientCafeId();
+  const { error } = await supabase.from(TABLE_NAME).delete().eq("id", id).eq("cafe_id", cafeId);
+  if (error) throw error;
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
+import { getClientCafeId, getClientCafeContext } from "@/lib/cafe-context-client";
 
 interface TableItem {
   id: number;
@@ -24,10 +25,8 @@ export default function TablesQRPage() {
     setLoading(true);
     setErrorMessage("");
 
-    const { data, error } = await supabase
-      .from("tables")
-      .select("*")
-      .order("table_number");
+    const cafeId = await getClientCafeId();
+    const { data, error } = await supabase.from("tables").select("*").eq("cafe_id", cafeId).order("table_number");
 
     console.log("DATA:", data);
     console.log("ERROR:", error);
@@ -79,7 +78,7 @@ export default function TablesQRPage() {
             className="rounded-2xl bg-white text-black p-6 text-center"
           >
             <QRCode
-              value={`http://localhost:3000/?table=${table.table_number}`}
+              value={`${window.location.origin}/?cafe=${encodeURIComponent(getClientCafeContext())}&table=${table.table_number}`}
               size={180}
             />
 

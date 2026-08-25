@@ -22,6 +22,12 @@ const actions = [
     icon: "📦",
   },
   {
+    title: "إدارة المسابقات",
+    description: "إضافة وإخفاء وترتيب أي دوري أو كأس",
+    href: "/admin/football-competitions",
+    icon: "⚽",
+  },
+  {
     title: "إعدادات النظام",
     description: "إعدادات المقهى",
     href: "/admin/settings",

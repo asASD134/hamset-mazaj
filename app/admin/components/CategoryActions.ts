@@ -1,9 +1,11 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
+import { getClientCafeId } from "@/lib/cafe-context-client";
 
 export async function createCategory(
   name: string,
   sortOrder: number
 ) {
+  const cafeId = await getClientCafeId();
   const cleanName = name.trim();
 
   if (!cleanName) {
@@ -13,6 +15,7 @@ export async function createCategory(
   const { error } = await supabase
     .from("categories")
     .insert({
+      cafe_id: cafeId,
       name_ar: cleanName,
       name_en: cleanName,
       image_url: null,
@@ -30,6 +33,7 @@ export async function updateCategory(
   name: string,
   sortOrder: number
 ) {
+  const cafeId = await getClientCafeId();
   const cleanName = name.trim();
 
   if (!cleanName) {
@@ -43,7 +47,8 @@ export async function updateCategory(
       name_en: cleanName,
       sort_order: sortOrder,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("cafe_id", cafeId);
 
   if (error) {
     throw new Error(error.message);
@@ -53,10 +58,12 @@ export async function updateCategory(
 export async function deleteCategory(
   id: string
 ) {
+  const cafeId = await getClientCafeId();
   const { error } = await supabase
     .from("categories")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("cafe_id", cafeId);
 
   if (error) {
     throw new Error(error.message);

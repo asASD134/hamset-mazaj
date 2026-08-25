@@ -2,83 +2,140 @@
 
 import Link from "next/link";
 
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-
 import Hero from "@/components/home/Hero";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import WhyChoose from "@/components/home/WhyChoose";
 import GalleryPreview from "@/components/home/GalleryPreview";
 import Testimonials from "@/components/home/Testimonials";
 import ContactSection from "@/components/home/ContactSection";
+import MatchesPreview from "@/components/home/MatchesPreview";
 import ServiceQuickActions from "@/components/home/ServiceQuickActions";
 
 import { useTable } from "@/context/TableContext";
+import { useSiteControl } from "@/context/SiteControlContext";
 
 export default function Home() {
-  const { hasTable, tableNumber } = useTable();
+  const { hasTable, tableNumber } =
+    useTable();
+
+  const siteControl =
+    useSiteControl();
 
   const withTable = (path: string) =>
-    hasTable ? `${path}?table=${tableNumber}` : path;
+    hasTable
+      ? `${path}?table=${tableNumber}`
+      : path;
 
   return (
-    <>
-      <Navbar />
+    <main
+      dir="rtl"
+      className="bg-black text-white"
+    >
+      {/* =========================================
+          Hero
+      ========================================= */}
 
-      <main className="bg-black pt-32 text-white">
-        <Hero />
+      <Hero />
 
-        {hasTable && (
-          <section className="bg-[#111111] py-16">
-            <div className="mx-auto max-w-6xl px-6">
-              <div className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500 to-yellow-600 p-10 text-center text-black shadow-2xl">
-                <h2 className="text-4xl font-black">
-                  أهلاً بك 👋
-                </h2>
+      {siteControl?.matches_enabled !== false && (
+        <MatchesPreview />
+      )}
 
-                <p className="mt-4 text-xl font-semibold">
-                  أنت الآن على الطاولة رقم {tableNumber}
-                </p>
+      {/* =========================================
+          ترحيب الطاولة
+      ========================================= */}
 
-                <p className="mx-auto mt-3 max-w-2xl text-base text-black/80">
-                  يمكنك الآن تصفح المنيو، إرسال الطلبات، أو
-                  استخدام خدمات الطاولة مباشرة.
-                </p>
+      {hasTable && (
+        <section className="bg-[#111111] py-12">
+          <div className="mx-auto max-w-6xl px-6">
 
-                <div className="mt-10 flex flex-wrap justify-center gap-5">
-                  <Link
-                    href={withTable("/menu")}
-                    className="rounded-2xl bg-black px-8 py-4 text-lg font-bold text-yellow-400 transition-all duration-300 hover:scale-105"
-                  >
-                    🍽️ اطلب الآن
-                  </Link>
+            <div className="overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500 to-yellow-600 p-8 text-center text-black shadow-2xl md:p-10">
 
-                  <Link
-                    href={withTable("/service")}
-                    className="rounded-2xl bg-white px-8 py-4 text-lg font-bold text-black transition-all duration-300 hover:scale-105"
-                  >
-                    🛎️ خدمات الطاولة
-                  </Link>
-                </div>
+              <h2 className="text-3xl font-black md:text-4xl">
+                أهلاً بك 👋
+              </h2>
+
+              <p className="mt-4 text-lg font-semibold md:text-xl">
+                أنت الآن على الطاولة رقم{" "}
+                {tableNumber}
+              </p>
+
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-black/80 md:text-base">
+                يمكنك الآن تصفح المنيو، إرسال الطلبات،
+                أو استخدام خدمات الطاولة مباشرة.
+              </p>
+
+              <div className="mt-8 flex flex-wrap justify-center gap-4">
+
+                <Link
+                  href={withTable("/menu")}
+                  className="rounded-2xl bg-black px-7 py-3.5 text-base font-bold text-yellow-400 transition hover:scale-105 md:px-8 md:py-4 md:text-lg"
+                >
+                  🍽️ اطلب الآن
+                </Link>
+
+                <Link
+                  href={withTable("/service")}
+                  className="rounded-2xl bg-white px-7 py-3.5 text-base font-bold text-black transition hover:scale-105 md:px-8 md:py-4 md:text-lg"
+                >
+                  🛎️ خدمات الطاولة
+                </Link>
+
               </div>
+
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {hasTable && <ServiceQuickActions />}
+      {/* =========================================
+          خدمات الطاولة
+      ========================================= */}
 
+      {hasTable && (
+        <ServiceQuickActions />
+      )}
+
+      {/* =========================================
+          المنتجات المميزة
+      ========================================= */}
+
+      {siteControl?.featured_enabled !== false && (
         <FeaturedProducts />
+      )}
 
+      {/* =========================================
+          لماذا نحن
+      ========================================= */}
+
+      {siteControl?.why_enabled !== false && (
         <WhyChoose />
+      )}
 
+      {/* =========================================
+          المعرض
+      ========================================= */}
+
+      {siteControl?.gallery_enabled !== false && (
         <GalleryPreview />
+      )}
 
+      {/* =========================================
+          آراء العملاء
+      ========================================= */}
+
+      {siteControl?.testimonials_enabled !== false && (
         <Testimonials />
+      )}
 
+      {/* =========================================
+          التواصل
+      ========================================= */}
+
+      {siteControl?.contact_enabled !== false && (
         <ContactSection />
-      </main>
+      )}
 
-      <Footer />
-    </>
+    </main>
   );
 }

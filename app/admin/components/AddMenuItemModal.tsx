@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
+import { getClientCafeId } from "@/lib/cafe-context-client";
 import ProductForm from "./ProductForm";
 import {
   createProduct,
@@ -62,10 +63,8 @@ export default function AddMenuItemModal({
   }, [open, editingItem]);
 
   async function loadCategories() {
-    const { data } = await supabase
-      .from("categories")
-      .select("*")
-      .order("sort_order");
+    const cafeId = await getClientCafeId();
+    const { data } = await supabase.from("categories").select("*").eq("cafe_id", cafeId).order("sort_order");
 
     setCategories((data as Category[]) ?? []);
   }

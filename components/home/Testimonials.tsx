@@ -2,6 +2,7 @@
 
 import { Star } from "lucide-react";
 import SiteName from "@/components/SiteName";
+import { useSiteControl } from "@/context/SiteControlContext";
 
 const reviews = [
   {
@@ -19,56 +20,128 @@ const reviews = [
 ];
 
 export default function Testimonials() {
+  const siteControl =
+    useSiteControl();
+
+  /*
+   * إخفاء القسم كاملًا
+   */
+  if (
+    siteControl?.testimonials_enabled ===
+    false
+  ) {
+    return null;
+  }
+
+  const showTitle =
+    siteControl?.show_testimonials_title !==
+    false;
+
+  const showDescription =
+    siteControl?.show_testimonials_description !==
+    false;
+
+  const showReviews =
+    siteControl?.show_testimonials_list !==
+    false;
+
+  const title =
+    siteControl?.testimonials_title ||
+    "ماذا يقول عملاؤنا؟";
+
+  const description =
+    siteControl?.testimonials_description ||
+    "نفخر بثقة عملائنا ونسعى دائمًا لتقديم أفضل تجربة داخل مقهى همسة مزاج.";
+
   return (
-    <section className="bg-black py-24">
+    <section
+      dir="rtl"
+      className="bg-black py-24"
+    >
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-16 text-center">
-          <span className="font-bold tracking-[0.3em] text-yellow-400">
-            آراء العملاء
-          </span>
 
-          <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
-            ماذا يقول عملاؤنا؟
-          </h2>
+        {/* =========================================
+            رأس القسم
+        ========================================= */}
 
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
-            نفخر بثقة عملائنا ونسعى دائماً لتقديم أفضل تجربة داخل
-            مقهى <SiteName />.
-          </p>
-        </div>
+        {(showTitle ||
+          showDescription) && (
+          <div className="mb-16 text-center">
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {reviews.map((review) => (
-            <div
-              key={review.name}
-              className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8 transition-all duration-300 hover:-translate-y-2 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/10"
-            >
-              <div className="mb-6 flex gap-1 text-yellow-400">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    size={20}
-                    fill="currentColor"
-                  />
-                ))}
-              </div>
-
-              <p className="min-h-[110px] leading-8 text-zinc-300">
-                &quot;{review.text}&quot;
-              </p>
-
-              <div className="mt-8 border-t border-zinc-700 pt-5">
-                <h3 className="text-lg font-bold text-white">
-                  {review.name}
-                </h3>
-
-                <span className="text-sm font-medium text-yellow-400">
-                  عميل مميز
+            {showTitle && (
+              <>
+                <span className="font-bold tracking-[0.3em] text-yellow-400">
+                  آراء العملاء
                 </span>
-              </div>
-            </div>
-          ))}
-        </div>
+
+                <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
+                  {title}
+                </h2>
+              </>
+            )}
+
+            {showDescription && (
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
+                {description}
+              </p>
+            )}
+
+          </div>
+        )}
+
+        {/* =========================================
+            التقييمات
+        ========================================= */}
+
+        {showReviews && (
+          <div className="grid gap-8 md:grid-cols-3">
+
+            {reviews.map(
+              (review) => (
+                <div
+                  key={review.name}
+                  className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8 transition-all duration-300 hover:-translate-y-2 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/10"
+                >
+
+                  <div className="mb-6 flex gap-1 text-yellow-400">
+                    {Array.from({
+                      length: 5,
+                    }).map(
+                      (_, index) => (
+                        <Star
+                          key={index}
+                          size={20}
+                          fill="currentColor"
+                        />
+                      )
+                    )}
+                  </div>
+
+                  <p className="min-h-[110px] leading-8 text-zinc-300">
+                    &quot;
+                    {review.text}
+                    &quot;
+                  </p>
+
+                  <div className="mt-8 border-t border-zinc-700 pt-5">
+
+                    <h3 className="text-lg font-bold text-white">
+                      {review.name}
+                    </h3>
+
+                    <span className="text-sm font-medium text-yellow-400">
+                      عميل مميز
+                    </span>
+
+                  </div>
+
+                </div>
+              )
+            )}
+
+          </div>
+        )}
+
       </div>
     </section>
   );

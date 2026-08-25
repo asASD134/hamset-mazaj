@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
+import { getClientCafeId } from "@/lib/cafe-context-client";
 import { ProductFormData } from "./types";
 
 const BUCKET = "menu-images";
@@ -53,6 +54,8 @@ export async function createProduct(
     );
   }
 
+  const cafeId = await getClientCafeId();
+
   const imageUrl =
     await uploadProductImage(
       form.image
@@ -62,6 +65,7 @@ export async function createProduct(
     await supabase
       .from("menu")
       .insert({
+        cafe_id: cafeId,
         category_id: form.categoryId,
         name_ar: form.nameAr.trim(),
         name_en:
@@ -103,6 +107,8 @@ export async function updateProduct(
     );
   }
 
+  const cafeId = await getClientCafeId();
+
   let imageUrl =
     currentImage ?? null;
 
@@ -131,7 +137,8 @@ export async function updateProduct(
           Number(form.calories) || 0,
         image_url: imageUrl,
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("cafe_id", cafeId);
 
   if (error) {
     throw new Error(error.message);
@@ -141,6 +148,8 @@ export async function updateProduct(
 export async function deleteProduct(
   id: string | number
 ) {
+  const cafeId = await getClientCafeId();
+
   const confirmed =
     window.confirm(
       "هل أنت متأكد من حذف هذا المنتج؟"
@@ -154,7 +163,8 @@ export async function deleteProduct(
     await supabase
       .from("menu")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("cafe_id", cafeId);
 
   if (error) {
     throw new Error(error.message);

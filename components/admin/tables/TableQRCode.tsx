@@ -9,10 +9,7 @@ interface TableQRCodeProps {
 export default function TableQRCode({
   tableNumber,
 }: TableQRCodeProps) {
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/?table=${tableNumber}`
-      : "";
+  const url = typeof window !== "undefined" ? (() => { const cafe = new URLSearchParams(window.location.search).get("cafe") || decodeURIComponent(document.cookie.split("; ").find(v => v.startsWith("active_cafe_context="))?.split("=")[1] || "hamset-mazaj"); return `${window.location.origin}/?cafe=${encodeURIComponent(cafe)}&table=${tableNumber}`; })() : "";
 
   async function copyLink() {
     try {

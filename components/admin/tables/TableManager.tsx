@@ -28,8 +28,8 @@ export default function TableManager() {
   async function copyLink(
     tableNumber: number
   ) {
-    const url =
-      `${window.location.origin}/?table=${tableNumber}`;
+    const cafe = new URLSearchParams(window.location.search).get("cafe") || decodeURIComponent(document.cookie.split("; ").find(v => v.startsWith("active_cafe_context="))?.split("=")[1] || "hamset-mazaj");
+    const url = `${window.location.origin}/?cafe=${encodeURIComponent(cafe)}&table=${tableNumber}`;
 
     try {
       await navigator.clipboard.writeText(url);

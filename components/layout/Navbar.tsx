@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
   House,
   UtensilsCrossed,
@@ -12,26 +13,59 @@ import {
   Menu,
   X,
 } from "lucide-react";
+
 import { useState } from "react";
 
 import { useTable } from "@/context/TableContext";
-import SiteName from "@/components/SiteName";
 import { useCafeSettings } from "@/context/CafeSettingsContext";
+import { useSiteControl } from "@/context/SiteControlContext";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { hasTable, tableNumber } = useTable();
-  const [open, setOpen] = useState(false);
-  const { settings } = useCafeSettings();
 
-  const withTable = (path: string) =>
-    hasTable ? `${path}?table=${tableNumber}` : path;
+  const { hasTable, tableNumber, cafeSlug } =
+    useTable();
 
-  const logoUrl =
-    settings.logo_url || "/images/logo.png";
+  const { settings } =
+    useCafeSettings();
+
+  const siteControl =
+    useSiteControl();
+
+  const [open, setOpen] =
+    useState(false);
+
+  const withTable = (path: string) => {
+    const params = new URLSearchParams();
+    if (cafeSlug) params.set("cafe", cafeSlug);
+    if (hasTable) params.set("table", String(tableNumber));
+    const query = params.toString();
+    return query ? `${path}?${query}` : path;
+  };
+
+  /*
+   * المصدر الأساسي للاسم والشعار:
+   * site_control
+   *
+   * وإذا لم توجد قيمة نرجع إلى
+   * cafe_settings.
+   */
 
   const cafeName =
-    settings.cafe_name || "همسة مزاج";
+    siteControl?.site_name ||
+    settings.cafe_name ||
+    "همسة مزاج";
+
+  const logoUrl =
+    siteControl?.logo_url ||
+    settings.logo_url ||
+    "/images/logo.png";
+
+  const showLogo =
+    siteControl?.show_logo !== false;
+
+  const showSiteName =
+    siteControl?.show_site_name !== false;
 
   const navItems = [
     {
@@ -56,183 +90,289 @@ export default function Navbar() {
     },
     {
       href: "/contact",
-      label: "تواصل",
+      label: "تواصل معنا",
       icon: Phone,
     },
   ];
 
+  const isActive = (
+    href: string
+  ) =>
+    pathname === href ||
+    (href !== "/" &&
+      pathname.startsWith(href));
+
   return (
     <>
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-yellow-500/20 bg-[#090909]/95 shadow-2xl backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid h-24 grid-cols-[1fr_auto_1fr] items-center">
+      {/* =================================================
+          Navbar
+      ================================================= */}
 
-            {/* Right Menu */}
+      <nav
+        dir="rtl"
+        className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
 
-            <div className="hidden items-center justify-end gap-2 lg:flex">
-              {navItems.slice(0, 2).map((item) => {
-                const Icon = item.icon;
+          <div className="grid h-20 grid-cols-[1fr_auto_1fr] items-center">
 
-                const active =
-                  pathname === item.href ||
-                  (item.href !== "/" &&
-                    pathname.startsWith(item.href));
+            {/* =================================================
+                القائمة اليمنى
+            ================================================= */}
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={withTable(item.href)}
-                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[16px] font-bold transition-all duration-300 ${
-                      active
-                        ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg"
-                        : "text-zinc-300 hover:bg-yellow-500/10 hover:text-yellow-400"
-                    }`}
-                  >
-                    <Icon size={18} />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <div className="hidden items-center justify-end gap-1 lg:flex">
+
+              {navItems
+                .slice(0, 2)
+                .map((item) => {
+                  const Icon =
+                    item.icon;
+
+                  const active =
+                    isActive(
+                      item.href
+                    );
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={withTable(
+                        item.href
+                      )}
+                      className={[
+                        "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300",
+                        active
+                          ? "bg-yellow-500 text-black"
+                          : "text-zinc-300 hover:bg-white/5 hover:text-yellow-400",
+                      ].join(" ")}
+                    >
+                      <Icon size={17} />
+
+                      {item.label}
+                    </Link>
+                  );
+                })}
+
             </div>
 
-            {/* Logo */}
+            {/* =================================================
+                الشعار والاسم
+            ================================================= */}
 
             <Link
               href={withTable("/")}
-              className="flex flex-col items-center justify-center"
+              className="group flex flex-col items-center justify-center"
             >
-              <Image
-                src={logoUrl}
-                alt={cafeName}
-                width={58}
-                height={58}
-                priority
-                className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,.35)]"
-              />
 
-              <h1 className="mt-1 text-xl font-black text-yellow-400">
-                <SiteName />
-              </h1>
+              {showLogo && (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-yellow-500/20 bg-black/40 p-1.5 transition duration-300 group-hover:border-yellow-500/50">
 
-              <p className="text-[10px] uppercase tracking-[5px] text-zinc-400">
-                Coffee & Lounge
-              </p>
+                  <Image
+                    src={logoUrl}
+                    alt={cafeName}
+                    width={64}
+                    height={64}
+                    priority
+                    className="h-full w-full object-contain"
+                  />
+
+                </div>
+              )}
+
+              {showSiteName && (
+                <span className="mt-1 text-sm font-black text-yellow-400 sm:text-base">
+                  {cafeName}
+                </span>
+              )}
+
+              <span className="hidden text-[8px] tracking-[0.35em] text-zinc-500 sm:block">
+                COFFEE & LOUNGE
+              </span>
+
             </Link>
 
-            {/* Left Menu */}
+            {/* =================================================
+                القائمة اليسرى
+            ================================================= */}
 
-            <div className="hidden items-center justify-start gap-2 lg:flex">
-              {navItems.slice(2).map((item) => {
-                const Icon = item.icon;
+            <div className="hidden items-center justify-start gap-1 lg:flex">
 
-                const active =
-                  pathname === item.href ||
-                  (item.href !== "/" &&
-                    pathname.startsWith(item.href));
+              {navItems
+                .slice(2)
+                .map((item) => {
+                  const Icon =
+                    item.icon;
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={withTable(item.href)}
-                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[16px] font-bold transition-all duration-300 ${
-                      active
-                        ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg"
-                        : "text-zinc-300 hover:bg-yellow-500/10 hover:text-yellow-400"
-                    }`}
-                  >
-                    <Icon size={18} />
-                    {item.label}
-                  </Link>
-                );
-              })}
+                  const active =
+                    isActive(
+                      item.href
+                    );
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={withTable(
+                        item.href
+                      )}
+                      className={[
+                        "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300",
+                        active
+                          ? "bg-yellow-500 text-black"
+                          : "text-zinc-300 hover:bg-white/5 hover:text-yellow-400",
+                      ].join(" ")}
+                    >
+                      <Icon size={17} />
+
+                      {item.label}
+                    </Link>
+                  );
+                })}
+
             </div>
 
-            {/* Mobile Button */}
+            {/* =================================================
+                زر الجوال
+            ================================================= */}
 
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() =>
+                setOpen(true)
+              }
               aria-label="فتح القائمة"
-              className="justify-self-end rounded-xl border border-yellow-500/20 bg-[#151515] p-3 text-yellow-400 lg:hidden"
+              className="justify-self-end rounded-xl border border-white/10 bg-white/5 p-2.5 text-yellow-400 transition hover:border-yellow-500/30 hover:bg-yellow-500/10 lg:hidden"
             >
-              <Menu size={26} />
+              <Menu size={24} />
             </button>
+
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* =================================================
+          القائمة الجانبية للجوال
+      ================================================= */}
 
       <div
-        className={`fixed inset-0 z-[60] transition-all duration-300 ${
+        className={[
+          "fixed inset-0 z-[60] transition-all duration-300",
           open
-            ? "visible bg-black/80 backdrop-blur-md"
-            : "invisible pointer-events-none"
-        }`}
+            ? "visible bg-black/70 backdrop-blur-sm"
+            : "pointer-events-none invisible",
+        ].join(" ")}
+        onClick={() =>
+          setOpen(false)
+        }
       >
-        <div
-          className={`absolute right-0 top-0 h-full w-80 border-l border-yellow-500/20 bg-[#090909] transition-transform duration-300 ${
+
+        <aside
+          dir="rtl"
+          className={[
+            "absolute right-0 top-0 h-full w-[min(88vw,360px)] border-l border-yellow-500/10 bg-[#090909] shadow-2xl transition-transform duration-300",
             open
               ? "translate-x-0"
-              : "translate-x-full"
-          }`}
+              : "translate-x-full",
+          ].join(" ")}
+          onClick={(event) =>
+            event.stopPropagation()
+          }
         >
-          <div className="flex items-center justify-between border-b border-yellow-500/20 p-6">
-            <div>
-              <Image
-                src={logoUrl}
-                alt={cafeName}
-                width={60}
-                height={60}
-                className="mb-3 object-contain"
-              />
 
-              <h2 className="text-xl font-black text-yellow-400">
-                <SiteName />
-              </h2>
+          {/* رأس القائمة */}
+          <div className="flex items-center justify-between border-b border-white/10 p-5">
 
-              <p className="text-[10px] uppercase tracking-[5px] text-zinc-400">
-                Coffee & Lounge
-              </p>
-            </div>
+            <Link
+              href={withTable("/")}
+              onClick={() =>
+                setOpen(false)
+              }
+              className="flex items-center gap-3"
+            >
+
+              {showLogo && (
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black p-1.5">
+
+                  <Image
+                    src={logoUrl}
+                    alt={cafeName}
+                    width={52}
+                    height={52}
+                    className="h-full w-full object-contain"
+                  />
+
+                </div>
+              )}
+
+              <div>
+
+                {showSiteName && (
+                  <h2 className="font-black text-yellow-400">
+                    {cafeName}
+                  </h2>
+                )}
+
+                <p className="text-[8px] tracking-[0.3em] text-zinc-500">
+                  COFFEE & LOUNGE
+                </p>
+
+              </div>
+
+            </Link>
 
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() =>
+                setOpen(false)
+              }
               aria-label="إغلاق القائمة"
-              className="rounded-lg bg-zinc-800 p-2"
+              className="rounded-xl border border-white/10 bg-white/5 p-2 text-zinc-300 transition hover:text-yellow-400"
             >
-              <X size={22} />
+              <X size={20} />
             </button>
+
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 px-5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
+          {/* روابط الهاتف */}
+          <div className="space-y-2 p-5">
 
-              const active =
-                pathname === item.href ||
-                (item.href !== "/" &&
-                  pathname.startsWith(item.href));
+            {navItems.map(
+              (item) => {
+                const Icon =
+                  item.icon;
 
-              return (
-                <Link
-                  key={item.href}
-                  href={withTable(item.href)}
-                  onClick={() => setOpen(false)}
-                  className={`flex items-center gap-4 rounded-2xl px-6 py-4 text-lg font-bold transition-all duration-300 ${
-                    active
-                      ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black"
-                      : "text-white hover:bg-zinc-800"
-                  }`}
-                >
-                  <Icon size={24} />
-                  {item.label}
-                </Link>
-              );
-            })}
+                const active =
+                  isActive(
+                    item.href
+                  );
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={withTable(
+                      item.href
+                    )}
+                    onClick={() =>
+                      setOpen(false)
+                    }
+                    className={[
+                      "flex items-center gap-4 rounded-2xl px-5 py-4 font-bold transition",
+                      active
+                        ? "bg-yellow-500 text-black"
+                        : "text-zinc-200 hover:bg-white/5 hover:text-yellow-400",
+                    ].join(" ")}
+                  >
+                    <Icon size={22} />
+
+                    <span>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              }
+            )}
+
           </div>
-        </div>
+        </aside>
       </div>
     </>
   );
