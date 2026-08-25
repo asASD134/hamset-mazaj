@@ -6,6 +6,7 @@ import "./globals.css";
 import getCafeSettings from "@/lib/getCafeSettings";
 import { getSiteControl } from "@/lib/getSiteControl";
 import { getActiveCafeServer } from "@/lib/cafe-context-server";
+import { getPlatformSettings } from "@/services/platformSettings";
 import PublicShell from "@/components/layout/PublicShell";
 
 export const dynamic = "force-dynamic";
@@ -46,28 +47,16 @@ export async function generateMetadata(): Promise<Metadata> {
     settings?.description ||
     `${cafeName} - مقهى وجلسات راقية وتجربة مميزة.`;
 
-  return {
-    title: cafeName,
-    description,
-  };
+  return { title: cafeName, description };
 }
 
 function InactiveCafePage({ cafeName }: { cafeName: string }) {
   return (
-    <div
-      dir="rtl"
-      className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-white"
-    >
+    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-white">
       <div className="w-full max-w-2xl rounded-[2rem] border border-yellow-500/20 bg-[#121212] p-8 text-center shadow-2xl sm:p-12">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-yellow-500/10 text-4xl">
-          ⏸️
-        </div>
-        <h1 className="text-3xl font-black text-yellow-400 sm:text-4xl">
-          {cafeName}
-        </h1>
-        <h2 className="mt-5 text-2xl font-black text-white">
-          الموقع متوقف مؤقتًا
-        </h2>
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-yellow-500/10 text-4xl">⏸️</div>
+        <h1 className="text-3xl font-black text-yellow-400 sm:text-4xl">{cafeName}</h1>
+        <h2 className="mt-5 text-2xl font-black text-white">الموقع متوقف مؤقتًا</h2>
         <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-zinc-400 sm:text-lg">
           هذا المقهى متوقف حاليًا من الإدارة، لذلك تم إخفاء محتوى الموقع والمباريات والإعدادات إلى أن يتم تشغيله مرة أخرى.
         </p>
@@ -76,11 +65,7 @@ function InactiveCafePage({ cafeName }: { cafeName: string }) {
   );
 }
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   if (await isAdminOrLoginRequest()) {
     return (
       <html lang="ar" dir="rtl">
@@ -89,9 +74,7 @@ export default async function RootLayout({
     );
   }
 
-  const activeCafe = await getActiveCafeServer(null, {
-    includeInactive: true,
-  });
+  const activeCafe = await getActiveCafeServer(null, { includeInactive: true });
 
   if (activeCafe && !activeCafe.is_active) {
     return (
@@ -103,15 +86,29 @@ export default async function RootLayout({
     );
   }
 
-  const [settings, siteControl] = await Promise.all([
+  const [settings, siteControl, platform] = await Promise.all([
     getCafeSettings(),
     getSiteControl(),
+    getPlatformSettings(),
   ]);
+
+  const mergedSiteControl = siteControl
+    ? {
+        ...siteControl,
+        primary_color: platform.primary_color,
+        background_color: platform.background_color,
+        surface_color: platform.surface_color,
+        typography:
+          Object.keys(platform.global_typography || {}).length > 0
+            ? platform.global_typography
+            : siteControl.typography,
+      }
+    : siteControl;
 
   return (
     <html lang="ar" dir="rtl">
       <body className="bg-[#050505] text-white">
-        <PublicShell settings={settings} siteControl={siteControl}>
+        <PublicShell settings={settings} siteControl={mergedSiteControl}>
           {children}
         </PublicShell>
       </body>
