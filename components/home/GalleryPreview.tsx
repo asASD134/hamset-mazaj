@@ -60,22 +60,22 @@ export default function GalleryPreview() {
       ? siteControl.gallery_images
       : [];
 
-  /*
-   * النجمة الخاصة بالصفحة الرئيسية.
-   *
-   * لا علاقة لها بزر إظهار/إخفاء.
-   */
   const galleryHome =
     (siteControl as typeof siteControl &
       GalleryHomeControl)
       ?.gallery_images_home;
 
   /*
-   * إذا لم توجد إعدادات النجمة بعد،
-   * نستخدم أول 6 صور كحل احتياطي.
+   * إذا كانت هناك نجمة واحدة على الأقل،
+   * نعرض الصور المختارة فقط.
+   *
+   * أما إذا لم يتم اختيار أي صورة بالنجمة
+   * (مثل الصور المرفوعة حديثًا)، فنُظهر كل
+   * صور المعرض بدل إخفائها بالكامل.
    */
   const hasHomeSelection =
-    Array.isArray(galleryHome);
+    Array.isArray(galleryHome) &&
+    galleryHome.some((selected) => selected === true);
 
   const images = (
     hasConfiguredGallery
@@ -87,15 +87,9 @@ export default function GalleryPreview() {
         return null;
       }
 
-      /*
-       * الصورة تظهر في الرئيسية فقط
-       * إذا كانت النجمة مفعلة.
-       *
-       * ونأخذ بحد أقصى 6 صور.
-       */
       if (
         hasHomeSelection &&
-        galleryHome[index] !== true
+        galleryHome?.[index] !== true
       ) {
         return null;
       }
@@ -121,12 +115,8 @@ export default function GalleryPreview() {
       className="bg-[#0b0b0b] py-24"
     >
       <div className="mx-auto max-w-7xl px-6">
-
-        {/* عنوان المعرض */}
-
         {(showTitle || showDescription) && (
           <div className="mb-14 text-center">
-
             {showTitle && (
               <>
                 <span className="font-bold tracking-[0.3em] text-yellow-400">
@@ -144,24 +134,19 @@ export default function GalleryPreview() {
                 {description}
               </p>
             )}
-
           </div>
         )}
-
-        {/* صور الصفحة الرئيسية */}
 
         {showImages && (
           <>
             {images.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
                 {images.map(
                   ({ image, index }) => (
                     <div
                       key={`${image}-${index}`}
                       className="group relative h-80 overflow-hidden rounded-3xl border border-zinc-800"
                     >
-
                       <Image
                         src={image}
                         alt={`صورة ${index + 1} من معرض ${title}`}
@@ -173,17 +158,13 @@ export default function GalleryPreview() {
                       <div className="absolute inset-0 bg-black/20 transition-all duration-300 group-hover:bg-black/45" />
 
                       <div className="absolute inset-0 flex items-end justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
-
                         <span className="mb-6 rounded-full bg-yellow-500 px-5 py-2 font-bold text-black">
                           <SiteName />
                         </span>
-
                       </div>
-
                     </div>
                   )
                 )}
-
               </div>
             ) : (
               <div className="rounded-3xl border border-white/10 bg-[#121212] p-10 text-center text-zinc-500">
@@ -193,23 +174,17 @@ export default function GalleryPreview() {
           </>
         )}
 
-        {/* زر عرض المعرض الكامل */}
-
         {showButton && (
           <div className="mt-16 text-center">
-
             <Link
               href={withTable("/gallery")}
               className="inline-flex items-center gap-3 rounded-2xl border-2 border-yellow-500 px-8 py-4 text-lg font-bold text-yellow-400 transition-all duration-300 hover:bg-yellow-500 hover:text-black"
             >
               عرض جميع الصور
-
               <ArrowLeft size={20} />
             </Link>
-
           </div>
         )}
-
       </div>
     </section>
   );
