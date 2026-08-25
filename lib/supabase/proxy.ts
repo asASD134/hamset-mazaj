@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 const REQUEST_CAFE_HEADER = "x-active-cafe-context";
 const REQUEST_PATH_HEADER = "x-request-pathname";
@@ -30,6 +31,11 @@ function shouldPreserveCafeInUrl(request: NextRequest) {
   return true;
 }
 
+function shouldRefreshAuth(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  return pathname.startsWith("/admin") || pathname.startsWith("/api/admin/") || pathname === "/login";
+}
+
 export async function updateSession(request: NextRequest) {
   const url = request.nextUrl.clone();
   const explicitCafe = url.searchParams.get(CAFE_QUERY_PARAM);
@@ -45,7 +51,7 @@ export async function updateSession(request: NextRequest) {
   requestHeaders.set(REQUEST_CAFE_HEADER, resolvedCafe);
   requestHeaders.set(REQUEST_PATH_HEADER, request.nextUrl.pathname);
 
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: { headers: requestHeaders },
   });
 
@@ -58,8 +64,45 @@ export async function updateSession(request: NextRequest) {
     });
   }
 
-  // Authentication is checked by the server layouts/API routes that actually
-  // need it. Do not perform a remote Supabase auth call on every navigation;
-  // that was making local admin pages wait on the network before rendering.
+  // Refresh the Supabase SSR session only where authentication matters.
+  // Public pages stay fast and avoid a remote auth round-trip on every request.
+  if (shouldRefreshAuth(request)) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              request.cookies.set(name, value);
+            });
+
+            response = NextResponse.next({
+              request: { headers: requestHeaders },
+            });
+
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+
+            if (explicitCafe) {
+              response.cookies.set(COOKIE_NAME, explicitCafe, {
+                httpOnly: false,
+                sameSite: "lax",
+                path: "/",
+                maxAge: 60 * 60 * 24 * 30,
+              });
+            }
+          },
+        },
+      }
+    );
+
+    await supabase.auth.getUser();
+  }
+
   return response;
 }
