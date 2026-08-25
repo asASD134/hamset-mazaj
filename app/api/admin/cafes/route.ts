@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const PLATFORM_TEMPLATE_SLUG = "__platform_template__";
-
 export async function GET() {
   const supabase = await createClient();
   const { data: isSystemAdmin, error } = await supabase.rpc("is_system_admin");
@@ -13,7 +11,6 @@ export async function GET() {
   const { data, error: listError } = await admin
     .from("cafes")
     .select("id,name,slug,owner_user_id,is_active,created_at,updated_at")
-    .neq("slug", PLATFORM_TEMPLATE_SLUG)
     .order("created_at", { ascending: false });
 
   if (listError) return NextResponse.json({ error: listError.message }, { status: 500 });
