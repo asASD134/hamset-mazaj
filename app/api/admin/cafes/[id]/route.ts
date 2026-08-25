@@ -17,6 +17,47 @@ async function requireSystemAdmin() {
   return supabase;
 }
 
+export async function GET(
+  _request: Request,
+  context: RouteContext
+) {
+  const supabase = await requireSystemAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+  if (!id) {
+    return NextResponse.json({ error: "معرف المقهى مطلوب" }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+  const { data: cafe, error: cafeError } = await admin
+    .from("cafes")
+    .select("id,name,slug,owner_user_id,is_active,created_at,updated_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (cafeError || !cafe) {
+    return NextResponse.json({ error: "المقهى غير موجود" }, { status: 404 });
+  }
+
+  let ownerEmail: string | null = null;
+  if (cafe.owner_user_id) {
+    const { data: authUser, error: authError } =
+      await admin.auth.admin.getUserById(cafe.owner_user_id);
+
+    if (!authError) {
+      ownerEmail = authUser.user?.email ?? null;
+    }
+  }
+
+  return NextResponse.json({
+    cafe,
+    ownerEmail,
+  });
+}
+
 export async function PATCH(
   request: Request,
   context: RouteContext
