@@ -64,14 +64,13 @@ export async function getActiveCafeServer(
   let query = supabase
     .from("cafes")
     .select("id,name,slug,is_active")
-    .eq("slug", requested)
-    .maybeSingle();
+    .eq("slug", requested);
 
   if (!includeInactive) {
     query = query.eq("is_active", true);
   }
 
-  const { data } = await query;
+  const { data } = await query.maybeSingle();
   return (data as ActiveCafe | null) ?? null;
 }
 
@@ -83,13 +82,12 @@ async function getCafeById(
   let query = supabase
     .from("cafes")
     .select("id,name,slug,is_active")
-    .eq("id", id)
-    .maybeSingle();
+    .eq("id", id);
 
   if (!includeInactive) {
     query = query.eq("is_active", true);
   }
 
-  const { data } = await query;
+  const { data } = await query.maybeSingle();
   return (data as ActiveCafe | null) ?? null;
 }
