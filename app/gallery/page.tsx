@@ -1,21 +1,40 @@
 import Image from "next/image";
 import getCafeSettings from "@/lib/getCafeSettings";
-import { getSiteControl } from "@/services/siteControl";
+import { getActiveCafeServer } from "@/lib/cafe-context-server";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function GalleryPage() {
-  const [cafeSettings, siteControl] = await Promise.all([
-    getCafeSettings(),
-    getSiteControl(),
+export default async function GalleryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cafe?: string }>;
+}) {
+  const params = await searchParams;
+  const requestedCafe = params.cafe || null;
+
+  const [cafeSettings, activeCafe] = await Promise.all([
+    getCafeSettings(requestedCafe),
+    getActiveCafeServer(requestedCafe),
   ]);
 
   const cafeName = cafeSettings?.cafe_name || "همسة مزاج";
 
-  const images = Array.isArray(siteControl?.gallery_images)
-    ? siteControl.gallery_images.filter(
-        (src): src is string =>
-          typeof src === "string" && src.length > 0
-      )
-    : [];
+  let images: string[] = [];
+
+  if (activeCafe) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("site_control")
+      .select("gallery_images")
+      .eq("cafe_id", activeCafe.id)
+      .maybeSingle();
+
+    images = Array.isArray(data?.gallery_images)
+      ? data.gallery_images.filter(
+          (src): src is string =>
+            typeof src === "string" && src.length > 0
+        )
+      : [];
+  }
 
   return (
     <main dir="rtl" className="min-h-screen bg-black text-white">
