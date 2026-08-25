@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getCafeSettings } from "@/lib/getCafeSettings";
+import getCafeSettings from "@/lib/getCafeSettings";
 import { getActiveCafeServer } from "@/lib/cafe-context-server";
 import { createClient } from "@/lib/supabase/server";
 
