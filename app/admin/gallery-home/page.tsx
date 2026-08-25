@@ -11,7 +11,7 @@ import {
   type SiteControl,
 } from "@/services/siteControl";
 
-const MAX_HOME_GALLERY_IMAGES = 4;
+const MAX_HOME_GALLERY_IMAGES = 6;
 
 export default function AdminGalleryHomePage() {
   const [settings, setSettings] = useState<SiteControl | null>(null);
@@ -127,7 +127,7 @@ export default function AdminGalleryHomePage() {
               </div>
               <h1 className="text-3xl font-black sm:text-4xl">حدد الصور التي تريد إظهارها في الرئيسية</h1>
               <p className="mt-3 max-w-3xl leading-7 text-zinc-400">
-                كل الصور الموجودة هنا تظهر في صفحة المعرض. اختر حتى أربع صور فقط بالنجمة لتظهر في الصفحة الرئيسية.
+                كل الصور الموجودة هنا تظهر في صفحة المعرض. اختر حتى ست صور فقط بالنجمة لتظهر في الصفحة الرئيسية.
                 إزالة النجمة تعني أن الصورة تبقى في المعرض فقط.
               </p>
             </div>
