@@ -32,9 +32,9 @@ type MenuDesign = {
 const radius: Record<string, string> = { none: "rounded-none", lg: "rounded-2xl", xl: "rounded-[32px]", "2xl": "rounded-[40px]" };
 const ratio: Record<string, string> = { square: "aspect-square", landscape: "aspect-[4/3]", portrait: "aspect-[3/4]" };
 const pricePosition: Record<string, string> = {
-  right: "right-5 left-auto -translate-x-0",
+  right: "right-8 left-auto -translate-x-0",
   center: "left-1/2 right-auto -translate-x-1/2",
-  left: "left-5 right-auto -translate-x-0",
+  left: "left-8 right-auto -translate-x-0",
 };
 
 export default function MenuCard({ item, design }: { item: MenuItem; design?: MenuDesign }) {
@@ -65,9 +65,9 @@ export default function MenuCard({ item, design }: { item: MenuItem; design?: Me
         </div>
       )}
 
-      <div className="p-7">
+      <div className="px-9 pb-8 pt-7">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="mb-4 text-3xl font-black text-white">{item.name}</h3>
+          <h3 className="mb-4 pr-3 text-3xl font-black text-white">{item.name}</h3>
           {item.featured && design?.showFeaturedBadge !== false && <Star size={18} fill="currentColor" className="mt-1 shrink-0 text-yellow-400" />}
         </div>
 
@@ -75,7 +75,7 @@ export default function MenuCard({ item, design }: { item: MenuItem; design?: Me
         {item.calories != null && <div className="mt-4 inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-bold text-zinc-300">🔥 {item.calories} سعرة حرارية</div>}
 
         {design?.showPrices !== false && (
-          <div className="mt-8 flex items-center justify-between gap-4">
+          <div className="mt-8 flex items-center justify-between gap-4 px-3">
             <div>
               <p className="text-sm text-zinc-500">السعر</p>
               <p className={`text-3xl font-black ${priceColor}`}>{item.price} ر.س</p>
