@@ -11,7 +11,7 @@ const SITE_CONTROL_COPY_KEYS = [
   "site_name", "tagline", "description", "logo_url", "favicon_url", "primary_color", "background_color", "surface_color", "typography",
   "hero_enabled", "hero_title", "hero_subtitle", "hero_description", "hero_background_url", "hero_badge",
   "hero_primary_enabled", "hero_primary_text", "hero_primary_url", "hero_secondary_enabled", "hero_secondary_text", "hero_secondary_url",
-  "featured_enabled", "featured_title", "featured_description", "featured_limit",
+  "featured_enabled", "featured_title", "featured_description", "featured_limit", "featured_product_ids",
   "why_enabled", "why_title", "why_description", "matches_enabled", "matches_title", "matches_description",
   "gallery_enabled", "gallery_title", "gallery_description", "gallery_images", "gallery_images_visible", "gallery_images_home",
   "testimonials_enabled", "testimonials_title", "testimonials_description", "contact_enabled", "contact_title", "contact_description",
@@ -70,33 +70,63 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: memberError.message }, { status: 500 });
   }
 
-  const { data: templateCafe } = await admin.from("cafes").select("id").eq("slug", TEMPLATE_SLUG).maybeSingle();
-  if (templateCafe) {
-    const [{ data: templateCafeSettings }, { data: templateSiteControl }] = await Promise.all([
-      admin.from("cafe_settings").select("*").eq("cafe_id", templateCafe.id).maybeSingle(),
-      admin.from("site_control").select("*").eq("cafe_id", templateCafe.id).maybeSingle(),
-    ]);
+  const { data: templateCafe, error: templateCafeError } = await admin.from("cafes").select("id").eq("slug", TEMPLATE_SLUG).maybeSingle();
 
-    const cafeSettingsInsert: Record<string, unknown> = { cafe_id: cafe.id, cafe_name: name, is_open: true };
-    if (templateCafeSettings) {
+  try {
+    if (templateCafeError) throw templateCafeError;
+
+    if (templateCafe) {
+      const [{ data: templateCafeSettings }, { data: templateSiteControl }] = await Promise.all([
+        admin.from("cafe_settings").select("*").eq("cafe_id", templateCafe.id).maybeSingle(),
+        admin.from("site_control").select("*").eq("cafe_id", templateCafe.id).maybeSingle(),
+      ]);
+
+      if (!templateCafeSettings || !templateSiteControl) throw new Error("إعدادات قالب الإدارة العامة غير مكتملة.");
+
+      const cafeSettingsInsert: Record<string, unknown> = { cafe_id: cafe.id };
       for (const key of CAFE_SETTING_COPY_KEYS) {
-        if (key === "cafe_name") continue;
         if (templateCafeSettings[key] !== undefined) cafeSettingsInsert[key] = templateCafeSettings[key];
       }
-    }
-    await admin.from("cafe_settings").insert(cafeSettingsInsert);
 
-    const siteControlInsert: Record<string, unknown> = { cafe_id: cafe.id, site_name: name };
-    if (templateSiteControl) {
+      const { data: createdCafeSettings, error: cafeSettingsError } = await admin.from("cafe_settings").insert(cafeSettingsInsert).select("id").single();
+      if (cafeSettingsError || !createdCafeSettings) throw cafeSettingsError ?? new Error("تعذر إنشاء إعدادات المقهى.");
+
+      const siteControlInsert: Record<string, unknown> = { cafe_id: cafe.id };
       for (const key of SITE_CONTROL_COPY_KEYS) {
-        if (key === "site_name") continue;
         if (templateSiteControl[key] !== undefined) siteControlInsert[key] = templateSiteControl[key];
       }
+
+      const { error: siteControlError } = await admin.from("site_control").insert(siteControlInsert);
+      if (siteControlError) throw siteControlError;
+
+      const { data: templateSocialLinks, error: socialError } = await admin
+        .from("social_links")
+        .select("name,url,icon,is_active,sort_order")
+        .eq("cafe_settings_id", templateCafeSettings.id)
+        .order("sort_order")
+        .order("created_at");
+      if (socialError) throw socialError;
+
+      if ((templateSocialLinks ?? []).length > 0) {
+        const rows = templateSocialLinks.map((link) => ({
+          cafe_settings_id: createdCafeSettings.id,
+          name: link.name,
+          url: link.url,
+          icon: link.icon,
+          is_active: link.is_active,
+          sort_order: link.sort_order,
+        }));
+        const { error: insertSocialError } = await admin.from("social_links").insert(rows);
+        if (insertSocialError) throw insertSocialError;
+      }
+    } else {
+      await admin.from("cafe_settings").insert({ cafe_id: cafe.id, cafe_name: name, is_open: true });
+      await admin.from("site_control").insert({ cafe_id: cafe.id, site_name: name });
     }
-    await admin.from("site_control").insert(siteControlInsert);
-  } else {
-    await admin.from("cafe_settings").insert({ cafe_id: cafe.id, cafe_name: name, is_open: true });
-    await admin.from("site_control").insert({ cafe_id: cafe.id, site_name: name });
+  } catch (error) {
+    await admin.from("cafes").delete().eq("id", cafe.id);
+    await admin.auth.admin.deleteUser(createdUser.user.id);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "تعذر إنشاء بيانات المقهى." }, { status: 500 });
   }
 
   return NextResponse.json({ cafe }, { status: 201 });
