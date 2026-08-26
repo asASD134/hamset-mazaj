@@ -22,6 +22,7 @@ const defaults = {
   menu_card_background: "surface",
   menu_card_border: true,
   menu_price_color: "accent",
+  menu_price_position: "right",
   menu_accent_color: "#EAB308",
 };
 
@@ -42,13 +43,8 @@ export default function PlatformMenuDesignPanel() {
       .catch((error) => {
         if (active) setMessage(error instanceof Error ? error.message : "تعذر تحميل الإعدادات.");
       })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   function update<K extends keyof typeof defaults>(key: K, value: (typeof defaults)[K]) {
@@ -63,16 +59,10 @@ export default function PlatformMenuDesignPanel() {
       const currentResponse = await fetch("/api/admin/platform-settings", { cache: "no-store" });
       const current = await currentResponse.json().catch(() => ({}));
       if (!currentResponse.ok) throw new Error(current?.error || "تعذر قراءة إعدادات المنصة الحالية.");
-
       const response = await fetch("/api/admin/platform-settings", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          foundation: {
-            ...(current?.settings?.foundation || {}),
-            ...form,
-          },
-        }),
+        body: JSON.stringify({ foundation: { ...(current?.settings?.foundation || {}), ...form } }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result?.error || "تعذر حفظ تصميم المنيو.");
@@ -80,30 +70,20 @@ export default function PlatformMenuDesignPanel() {
       setMessage("تم حفظ تصميم المنيو.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر حفظ تصميم المنيو.");
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
-  if (loading) {
-    return <div className="rounded-3xl border border-white/10 bg-black/20 p-6 text-sm text-zinc-500">جاري تحميل إعدادات تصميم المنيو...</div>;
-  }
+  if (loading) return <div className="rounded-3xl border border-white/10 bg-black/20 p-6 text-sm text-zinc-500">جاري تحميل إعدادات تصميم المنيو...</div>;
 
   return (
     <div dir="rtl" className="mb-6 rounded-3xl border border-yellow-500/20 bg-[#0b0d12] p-5 sm:p-7">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-400"><Palette size={21} /></div>
-          <div>
-            <h3 className="text-xl font-black text-white">تصميم المنيو المركزي</h3>
-            <p className="mt-1 text-sm leading-6 text-zinc-500">تحكم في الشكل والهيكل العام للمنيو من الإدارة العامة.</p>
-          </div>
+          <div><h3 className="text-xl font-black text-white">تصميم المنيو المركزي</h3><p className="mt-1 text-sm leading-6 text-zinc-500">تحكم في الشكل والهيكل العام للمنيو من الإدارة العامة.</p></div>
         </div>
-        <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-yellow-500 px-5 py-3 font-black text-black hover:bg-yellow-400 disabled:opacity-60">
-          <Save size={18} /> {saving ? "جارٍ الحفظ..." : "حفظ تصميم المنيو"}
-        </button>
+        <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-yellow-500 px-5 py-3 font-black text-black hover:bg-yellow-400 disabled:opacity-60"><Save size={18} /> {saving ? "جارٍ الحفظ..." : "حفظ تصميم المنيو"}</button>
       </div>
-
       {message && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-bold text-yellow-300">{message}</div>}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -113,6 +93,7 @@ export default function PlatformMenuDesignPanel() {
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">شكل البطاقة</span><select value={String(form.menu_card_style)} onChange={(e) => update("menu_card_style", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="classic">كلاسيكي</option><option value="minimal">بسيط</option><option value="luxury">فاخر</option></select></label>
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">استدارة البطاقات</span><select value={String(form.menu_card_radius)} onChange={(e) => update("menu_card_radius", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="none">بدون</option><option value="lg">متوسطة</option><option value="xl">كبيرة</option><option value="2xl">كبيرة جدًا</option></select></label>
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">نسبة الصور</span><select value={String(form.menu_image_ratio)} onChange={(e) => update("menu_image_ratio", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="square">مربعة</option><option value="landscape">أفقية</option><option value="portrait">طولية</option></select></label>
+        <label><span className="mb-2 block text-xs font-bold text-zinc-400">موضع السعر</span><select value={String(form.menu_price_position)} onChange={(e) => update("menu_price_position", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="right">يمين</option><option value="center">وسط</option><option value="left">يسار</option></select></label>
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">طريقة عرض التصنيفات</span><select value={String(form.menu_category_style)} onChange={(e) => update("menu_category_style", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="sections">أقسام</option><option value="tabs">تبويبات</option></select></label>
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">المسافة بين الأقسام</span><select value={String(form.menu_section_spacing)} onChange={(e) => update("menu_section_spacing", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="small">صغيرة</option><option value="medium">متوسطة</option><option value="large">كبيرة</option></select></label>
         <label><span className="mb-2 block text-xs font-bold text-zinc-400">خلفية البطاقة</span><select value={String(form.menu_card_background)} onChange={(e) => update("menu_card_background", e.target.value)} className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none"><option value="surface">داكنة</option><option value="transparent">شفافة</option></select></label>
@@ -131,11 +112,7 @@ export default function PlatformMenuDesignPanel() {
           ["menu_card_shadow", "ظل البطاقات"],
           ["menu_card_border", "إطار البطاقات"],
         ] as const).map(([key, label]) => (
-          <label key={key} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-bold text-zinc-300">
-            <input type="checkbox" checked={Boolean(form[key])} onChange={(e) => update(key, e.target.checked)} />
-            <LayoutGrid size={15} className="text-yellow-400" />
-            {label}
-          </label>
+          <label key={key} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-bold text-zinc-300"><input type="checkbox" checked={Boolean(form[key])} onChange={(e) => update(key, e.target.checked)} /><LayoutGrid size={15} className="text-yellow-400" />{label}</label>
         ))}
       </div>
     </div>
