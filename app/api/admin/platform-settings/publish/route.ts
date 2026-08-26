@@ -3,8 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sanitizePlatformFoundation } from "@/services/platformSettings";
 
-const TEMPLATE_SLUG = "__platform_template__";
-
 async function requireSystemAdmin() {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("is_system_admin");
@@ -14,32 +12,31 @@ async function requireSystemAdmin() {
 
 export async function POST() {
   const admin = await requireSystemAdmin();
-  if (!admin) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
-
-  const { data: templateCafe, error: templateError } = await admin
-    .from("cafes")
-    .select("id")
-    .eq("slug", TEMPLATE_SLUG)
-    .single();
-
-  if (templateError || !templateCafe) {
-    return NextResponse.json({ error: "قالب المنصة غير موجود." }, { status: 500 });
+  if (!admin) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   }
 
-  const { data: templateSite, error: siteError } = await admin
-    .from("site_control")
-    .select("*")
-    .eq("cafe_id", templateCafe.id)
+  const { data: platformSettings, error: platformError } = await admin
+    .from("platform_settings")
+    .select("foundation, version")
+    .eq("singleton", true)
     .single();
 
-  if (siteError || !templateSite) {
-    return NextResponse.json({ error: "إعدادات قالب المنصة غير موجودة." }, { status: 500 });
+  if (platformError || !platformSettings) {
+    return NextResponse.json(
+      { error: platformError?.message || "إعدادات المنصة غير موجودة." },
+      { status: 500 }
+    );
   }
 
-  // Only the explicitly whitelisted platform foundation fields are copied.
-  // Manually-entered text, names, descriptions, logos, gallery images,
-  // menus and every other cafe-owned value remain untouched.
-  const foundation = sanitizePlatformFoundation(templateSite);
+  // The publish source is the platform settings record itself.
+  // Never read the template cafe's content here, so cafe-owned text,
+  // logos, backgrounds, gallery images, menu data and other content
+  // can never leak into other cafes through the global publish action.
+  const foundation = sanitizePlatformFoundation(
+    (platformSettings.foundation || {}) as Record<string, unknown>
+  );
+
   const update: Record<string, unknown> = {
     ...foundation,
     updated_at: new Date().toISOString(),
@@ -48,12 +45,18 @@ export async function POST() {
   const { data: cafes, error: cafesError } = await admin
     .from("cafes")
     .select("id")
-    .neq("id", templateCafe.id)
+    .neq("slug", "__platform_template__")
     .eq("is_active", true);
 
-  if (cafesError) return NextResponse.json({ error: cafesError.message }, { status: 500 });
+  if (cafesError) {
+    return NextResponse.json(
+      { error: cafesError.message },
+      { status: 500 }
+    );
+  }
 
   let updatedCount = 0;
+
   for (const cafe of cafes ?? []) {
     const { error } = await admin
       .from("site_control")
@@ -73,6 +76,6 @@ export async function POST() {
   return NextResponse.json({
     ok: true,
     updatedCount,
-    version: new Date().toISOString(),
+    version: platformSettings.version,
   });
 }
