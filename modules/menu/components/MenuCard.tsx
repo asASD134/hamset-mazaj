@@ -67,7 +67,7 @@ export default function MenuCard({ item, design }: { item: MenuItem; design?: Me
 
       <div className="px-9 pb-8 pt-7">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="mb-4 pr-3 text-3xl font-black text-white">{item.name}</h3>
+          <h3 className="relative -translate-x-4 mb-4 pr-3 text-3xl font-black text-white">{item.name}</h3>
           {item.featured && design?.showFeaturedBadge !== false && <Star size={18} fill="currentColor" className="mt-1 shrink-0 text-yellow-400" />}
         </div>
 
@@ -76,7 +76,7 @@ export default function MenuCard({ item, design }: { item: MenuItem; design?: Me
 
         {design?.showPrices !== false && (
           <div className="mt-8 flex items-center justify-between gap-4 px-3">
-            <div>
+            <div className="relative -translate-x-4">
               <p className="text-sm text-zinc-500">السعر</p>
               <p className={`text-3xl font-black ${priceColor}`}>{item.price} ر.س</p>
             </div>
