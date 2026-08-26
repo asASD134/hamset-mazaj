@@ -3,7 +3,6 @@ import { getClientCafeId, isPlatformSettingsClientMode } from "@/lib/cafe-contex
 import { MenuItem, CreateMenuItem, UpdateMenuItem } from "@/types/menu";
 
 const TABLE_NAME = "menu";
-
 type MenuContext = { platform?: boolean };
 
 function mapMenuItem(item: any): MenuItem {
@@ -12,6 +11,7 @@ function mapMenuItem(item: any): MenuItem {
     name: item.name_ar ?? "",
     description: item.description_ar ?? "",
     price: Number(item.price ?? 0),
+    calories: item.calories == null ? null : Number(item.calories),
     image: item.image_url ?? "",
     category: String(item.category_id ?? ""),
     available: Boolean(item.is_available),
@@ -32,9 +32,7 @@ async function callPlatformMenu(payload: Record<string, unknown>) {
     body: JSON.stringify(payload),
   });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok || result?.ok !== true) {
-    throw new Error(result?.error || "تعذر نشر تحديث المنيو.");
-  }
+  if (!response.ok || result?.ok !== true) throw new Error(result?.error || "تعذر نشر تحديث المنيو.");
   return result;
 }
 
@@ -63,7 +61,7 @@ export async function createMenuItem(item: CreateMenuItem, context?: MenuContext
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
 
   if (shouldPublishToPlatform(context)) {
-    await callPlatformMenu({ action: "create", item: { ...item, name, description } });
+    await callPlatformMenu({ action: "create", item: { ...item, name, description, calories: item.calories ?? null } });
     const items = await getMenuItems(context);
     return items[items.length - 1];
   }
@@ -77,6 +75,7 @@ export async function createMenuItem(item: CreateMenuItem, context?: MenuContext
     description_ar: description,
     description_en: description,
     price: item.price,
+    calories: item.calories ?? null,
     image_url: item.image || null,
     is_available: item.available,
     is_featured: item.featured ?? false,
@@ -94,7 +93,7 @@ export async function updateMenuItem(item: UpdateMenuItem, context?: MenuContext
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
 
   if (shouldPublishToPlatform(context)) {
-    await callPlatformMenu({ action: "update", id: item.id, item: { ...item, name, description } });
+    await callPlatformMenu({ action: "update", id: item.id, item: { ...item, name, description, calories: item.calories ?? null } });
     const refreshed = await getMenuItems(context);
     const match = refreshed.find((entry) => entry.id === item.id) ?? refreshed[0];
     if (!match) throw new Error("تعذر العثور على المنتج بعد التحديث.");
@@ -109,6 +108,7 @@ export async function updateMenuItem(item: UpdateMenuItem, context?: MenuContext
     description_ar: description,
     description_en: description,
     price: item.price,
+    calories: item.calories ?? null,
     image_url: item.image || null,
     is_available: item.available,
     is_featured: item.featured ?? false,
