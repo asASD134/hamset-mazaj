@@ -20,6 +20,7 @@ const DEFAULTS = {
   menu_card_background: "surface",
   menu_card_border: true,
   menu_price_color: "accent",
+  menu_price_position: "right",
   menu_accent_color: "#EAB308",
 };
 
