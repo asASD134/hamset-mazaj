@@ -1,77 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizePlatformFoundation } from "@/services/platformSettings";
 
 const TEMPLATE_SLUG = "__platform_template__";
-
-// Shared system behavior only. Any text/content entered by a cafe owner
-// remains cafe-specific and is never copied from the platform template.
-const GLOBAL_SITE_KEYS = [
-  "primary_color",
-  "background_color",
-  "surface_color",
-  "typography",
-  "section_order",
-
-  "hero_enabled",
-  "featured_enabled",
-  "why_enabled",
-  "matches_enabled",
-  "gallery_enabled",
-  "testimonials_enabled",
-  "contact_enabled",
-  "footer_enabled",
-
-  // Shared visibility/behavior switches only.
-  "show_phone",
-  "show_address",
-  "show_opening_hours",
-  "show_social_links",
-  "show_map",
-  "show_site_name",
-  "show_tagline",
-  "show_site_description",
-  "show_logo",
-  "show_hero_badge",
-  "show_hero_title",
-  "show_hero_subtitle",
-  "show_hero_description",
-  "show_hero_background",
-  "show_hero_primary_button",
-  "show_hero_secondary_button",
-  "show_featured_badge",
-  "show_featured_title",
-  "show_featured_description",
-  "show_featured_products",
-  "show_featured_prices",
-  "show_featured_button",
-  "show_why_title",
-  "show_why_description",
-  "show_why_features",
-  "show_matches_title",
-  "show_matches_description",
-  "show_matches_list",
-  "show_matches_button",
-  "show_gallery_title",
-  "show_gallery_description",
-  "show_gallery_images",
-  "show_gallery_button",
-  "show_testimonials_title",
-  "show_testimonials_description",
-  "show_testimonials_list",
-  "show_contact_title",
-  "show_contact_description",
-  "show_contact_address",
-  "show_contact_phone",
-  "show_contact_hours",
-  "show_contact_map",
-  "show_contact_social_links",
-  "show_footer_description",
-  "show_footer_links",
-  "show_footer_contact",
-  "show_footer_social_links",
-  "show_footer_copyright",
-] as const;
 
 async function requireSystemAdmin() {
   const supabase = await createClient();
@@ -104,8 +36,14 @@ export async function POST() {
     return NextResponse.json({ error: "إعدادات قالب المنصة غير موجودة." }, { status: 500 });
   }
 
-  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const key of GLOBAL_SITE_KEYS) update[key] = templateSite[key];
+  // Only the explicitly whitelisted platform foundation fields are copied.
+  // Manually-entered text, names, descriptions, logos, gallery images,
+  // menus and every other cafe-owned value remain untouched.
+  const foundation = sanitizePlatformFoundation(templateSite);
+  const update: Record<string, unknown> = {
+    ...foundation,
+    updated_at: new Date().toISOString(),
+  };
 
   const { data: cafes, error: cafesError } = await admin
     .from("cafes")
@@ -123,7 +61,10 @@ export async function POST() {
       .eq("cafe_id", cafe.id);
 
     if (error) {
-      return NextResponse.json({ error: error.message, updatedCount }, { status: 500 });
+      return NextResponse.json(
+        { error: error.message, updatedCount },
+        { status: 500 }
+      );
     }
 
     updatedCount += 1;
