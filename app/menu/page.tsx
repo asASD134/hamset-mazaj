@@ -24,13 +24,13 @@ const defaults = {
   menu_card_background: "surface",
   menu_card_border: true,
   menu_price_color: "accent",
+  menu_price_position: "right",
   menu_accent_color: "#EAB308",
 };
 
 type Design = typeof defaults;
 const columns: Record<number, string> = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-2 xl:grid-cols-3", 4: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" };
 const spacing: Record<string, string> = { small: "mb-12", medium: "mb-18", large: "mb-24" };
-const radius: Record<string, string> = { none: "rounded-none", lg: "rounded-2xl", xl: "rounded-[32px]", "2xl": "rounded-[40px]" };
 
 export default function MenuPage() {
   const { hasTable, tableNumber } = useTable();
@@ -84,7 +84,7 @@ export default function MenuPage() {
                 <div><h2 className="text-4xl font-black" style={{ color: heroAccent }}>{category.title}</h2><div className="mt-2 h-[2px] w-24 rounded-full" style={{ backgroundColor: `${heroAccent}66` }} /></div>
               </div>
               <div className={`grid gap-8 ${gridClass}`}>
-                {category.items.map((item) => <MenuCard key={item.id} item={item} design={{ cardRadius: String(design.menu_card_radius), cardShadow: Boolean(design.menu_card_shadow), showImages: Boolean(design.menu_show_images), showDescriptions: Boolean(design.menu_show_descriptions), showPrices: Boolean(design.menu_show_prices), showFeaturedBadge: Boolean(design.menu_show_featured_badge), imageRatio: String(design.menu_image_ratio), cardBackground: String(design.menu_card_background), cardBorder: Boolean(design.menu_card_border), priceColor: String(design.menu_price_color), accentColor: heroAccent }} />)}
+                {category.items.map((item) => <MenuCard key={item.id} item={item} design={{ cardRadius: String(design.menu_card_radius), cardShadow: Boolean(design.menu_card_shadow), showImages: Boolean(design.menu_show_images), showDescriptions: Boolean(design.menu_show_descriptions), showPrices: Boolean(design.menu_show_prices), showFeaturedBadge: Boolean(design.menu_show_featured_badge), imageRatio: String(design.menu_image_ratio), cardBackground: String(design.menu_card_background), cardBorder: Boolean(design.menu_card_border), priceColor: String(design.menu_price_color), pricePosition: String(design.menu_price_position), accentColor: heroAccent }} />)}
               </div>
             </section>
           ))}
