@@ -6,7 +6,6 @@ import "./globals.css";
 import getCafeSettings from "@/lib/getCafeSettings";
 import { getSiteControl } from "@/lib/getSiteControl";
 import { getActiveCafeServer } from "@/lib/cafe-context-server";
-import { getPlatformSettings } from "@/services/platformSettings";
 import PublicShell from "@/components/layout/PublicShell";
 
 export const dynamic = "force-dynamic";
@@ -62,39 +61,6 @@ function InactiveCafePage({ cafeName }: { cafeName: string }) {
   );
 }
 
-// Only these fields are true platform-wide controls.
-// All manually-written content remains owned by each individual cafe/site.
-const GLOBAL_KEYS = [
-  "primary_color", "background_color", "surface_color", "typography",
-  "hero_enabled",
-  "featured_enabled", "featured_limit",
-  "why_enabled",
-  "matches_enabled",
-  "gallery_enabled",
-  "testimonials_enabled",
-  "contact_enabled",
-  "footer_enabled",
-  "show_phone", "show_address", "show_opening_hours", "show_social_links", "show_map",
-  "section_order",
-  "show_site_name", "show_tagline", "show_site_description", "show_logo",
-  "show_hero_badge", "show_hero_title", "show_hero_subtitle", "show_hero_description", "show_hero_primary_button", "show_hero_secondary_button",
-  "show_featured_badge", "show_featured_title", "show_featured_description", "show_featured_products", "show_featured_prices", "show_featured_button",
-  "show_why_title", "show_why_description", "show_why_features",
-  "show_matches_title", "show_matches_description", "show_matches_list", "show_matches_button",
-  "show_gallery_title", "show_gallery_description", "show_gallery_images", "show_gallery_button",
-  "show_testimonials_title", "show_testimonials_description", "show_testimonials_list",
-  "show_contact_title", "show_contact_description", "show_contact_address", "show_contact_phone", "show_contact_hours", "show_contact_map", "show_contact_social_links",
-  "show_footer_description", "show_footer_links", "show_footer_contact", "show_footer_social_links", "show_footer_copyright",
-] as const;
-
-function applyPlatformFoundation(siteControl: any, foundation: Record<string, any>) {
-  const merged = { ...siteControl };
-  for (const key of GLOBAL_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(foundation, key)) merged[key] = foundation[key];
-  }
-  return merged;
-}
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   if (await isAdminOrLoginRequest()) {
     return (
@@ -115,33 +81,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
-  const [settings, siteControl, platform] = await Promise.all([
+  const [settings, siteControl] = await Promise.all([
     getCafeSettings(),
     getSiteControl(),
-    getPlatformSettings(),
   ]);
 
-  let mergedSiteControl = siteControl ? applyPlatformFoundation(siteControl, platform.foundation || {}) : siteControl;
   let previewSettings = settings;
+  let previewSiteControl = siteControl;
 
   if (platformPreview) {
-    const preview = platform.preview_assets || {};
-    previewSettings = settings ? { ...settings, logo_url: preview.logo || settings.logo_url } : settings;
-    if (mergedSiteControl) {
-      mergedSiteControl = {
-        ...mergedSiteControl,
-        hero_background_url: preview.hero || mergedSiteControl.hero_background_url,
-        gallery_images: preview.gallery ? [preview.gallery] : mergedSiteControl.gallery_images,
-        gallery_images_visible: preview.gallery ? [true] : mergedSiteControl.gallery_images_visible,
-        gallery_images_home: preview.gallery ? [true] : mergedSiteControl.gallery_images_home,
-      };
+    previewSettings = settings;
+    if (previewSiteControl) {
+      previewSiteControl = { ...previewSiteControl };
     }
   }
 
   return (
     <html lang="ar" dir="rtl">
       <body className="bg-[#050505] text-white">
-        <PublicShell settings={previewSettings} siteControl={mergedSiteControl}>
+        <PublicShell settings={previewSettings} siteControl={previewSiteControl}>
           {children}
         </PublicShell>
       </body>
