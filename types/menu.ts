@@ -3,6 +3,7 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
+  calories: number | null;
   image: string;
   category: string;
   available: boolean;
@@ -15,6 +16,7 @@ export interface CreateMenuItem {
   name: string;
   description: string;
   price: number;
+  calories?: number | null;
   image: string;
   category: string;
   available: boolean;
@@ -22,7 +24,6 @@ export interface CreateMenuItem {
   sort_order: number;
 }
 
-export interface UpdateMenuItem
-  extends CreateMenuItem {
+export interface UpdateMenuItem extends CreateMenuItem {
   id: string;
 }
