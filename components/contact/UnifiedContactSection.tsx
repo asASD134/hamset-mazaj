@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import {
   Clock3,
   ExternalLink,
@@ -10,7 +12,7 @@ export type ContactSocialItem = {
   id: string;
   name: string;
   url: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 };
 
 type UnifiedContactSectionProps = {
@@ -61,9 +63,9 @@ function ContactCard({
   title,
   children,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-yellow-500/20">
