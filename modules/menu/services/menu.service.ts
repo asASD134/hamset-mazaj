@@ -24,8 +24,14 @@ export async function getMenuCategories(): Promise<MenuCategory[]> {
     id: String(category.id),
     title: category.name_ar,
     items: items.filter((item) => Number(item.category_id) === Number(category.id)).map((item) => ({
-      id: String(item.id), name: item.name_ar, description: item.description_ar ?? "",
-      price: item.price, image: item.image_url ?? "", icon: "☕", featured: item.is_featured,
+      id: String(item.id),
+      name: item.name_ar,
+      description: item.description_ar ?? "",
+      price: item.price,
+      calories: item.calories == null ? null : Number(item.calories),
+      image: item.image_url ?? "",
+      icon: "☕",
+      featured: item.is_featured,
     })),
   }));
 }
