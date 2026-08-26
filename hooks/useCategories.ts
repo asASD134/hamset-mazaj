@@ -14,6 +14,19 @@ import {
   deleteCategory,
 } from "@/services/categories";
 
+type CategoryMapGlobal = typeof globalThis & {
+  categoryMap?: Map<string, string>;
+};
+
+const runtimeGlobal = globalThis as CategoryMapGlobal;
+runtimeGlobal.categoryMap ??= new Map<string, string>();
+
+function syncCategoryMap(categories: Category[]) {
+  runtimeGlobal.categoryMap = new Map(
+    categories.map((category) => [String(category.id), String(category.name_ar ?? "")])
+  );
+}
+
 export function useCategories() {
   const [categories, setCategories] =
     useState<Category[]>([]);
@@ -31,6 +44,7 @@ export function useCategories() {
 
       const data = await getCategories();
 
+      syncCategoryMap(data);
       setCategories(data);
     } catch (error) {
       console.error(error);
