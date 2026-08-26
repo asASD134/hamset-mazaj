@@ -4,6 +4,8 @@ import { MenuItem, CreateMenuItem, UpdateMenuItem } from "@/types/menu";
 
 const TABLE_NAME = "menu";
 
+type MenuContext = { platform?: boolean };
+
 function mapMenuItem(item: any): MenuItem {
   return {
     id: String(item.id),
@@ -19,6 +21,10 @@ function mapMenuItem(item: any): MenuItem {
   };
 }
 
+function shouldPublishToPlatform(context?: MenuContext) {
+  return context?.platform === true || isPlatformSettingsClientMode();
+}
+
 async function callPlatformMenu(payload: Record<string, unknown>) {
   const response = await fetch("/api/admin/platform-settings/apply-menu", {
     method: "POST",
@@ -26,17 +32,20 @@ async function callPlatformMenu(payload: Record<string, unknown>) {
     body: JSON.stringify(payload),
   });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result?.error || "تعذر نشر تحديث المنيو.");
+  if (!response.ok || result?.ok !== true) {
+    throw new Error(result?.error || "تعذر نشر تحديث المنيو.");
+  }
+  return result;
 }
 
-export async function getMenuItems(): Promise<MenuItem[]> {
+export async function getMenuItems(_context?: MenuContext): Promise<MenuItem[]> {
   const cafeId = await getClientCafeId();
   const { data, error } = await supabase.from(TABLE_NAME).select("*").eq("cafe_id", cafeId).order("sort_order", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(mapMenuItem);
 }
 
-export async function getMenuItem(id: string): Promise<MenuItem | null> {
+export async function getMenuItem(id: string, _context?: MenuContext): Promise<MenuItem | null> {
   const cafeId = await getClientCafeId();
   const { data, error } = await supabase.from(TABLE_NAME).select("*").eq("id", id).eq("cafe_id", cafeId).single();
   if (error) {
@@ -46,16 +55,16 @@ export async function getMenuItem(id: string): Promise<MenuItem | null> {
   return mapMenuItem(data);
 }
 
-export async function createMenuItem(item: CreateMenuItem): Promise<MenuItem> {
+export async function createMenuItem(item: CreateMenuItem, context?: MenuContext): Promise<MenuItem> {
   const name = item.name.trim();
   const description = item.description.trim();
   if (!name) throw new Error("اسم المنتج مطلوب");
   if (!item.category) throw new Error("يجب اختيار التصنيف");
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
 
-  if (isPlatformSettingsClientMode()) {
+  if (shouldPublishToPlatform(context)) {
     await callPlatformMenu({ action: "create", item: { ...item, name, description } });
-    const items = await getMenuItems();
+    const items = await getMenuItems(context);
     return items[items.length - 1];
   }
 
@@ -77,16 +86,16 @@ export async function createMenuItem(item: CreateMenuItem): Promise<MenuItem> {
   return mapMenuItem(data);
 }
 
-export async function updateMenuItem(item: UpdateMenuItem): Promise<MenuItem> {
+export async function updateMenuItem(item: UpdateMenuItem, context?: MenuContext): Promise<MenuItem> {
   const name = item.name.trim();
   const description = item.description.trim();
   if (!name) throw new Error("اسم المنتج مطلوب");
   if (!item.category) throw new Error("يجب اختيار التصنيف");
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
 
-  if (isPlatformSettingsClientMode()) {
+  if (shouldPublishToPlatform(context)) {
     await callPlatformMenu({ action: "update", id: item.id, item: { ...item, name, description } });
-    const refreshed = await getMenuItems();
+    const refreshed = await getMenuItems(context);
     const match = refreshed.find((entry) => entry.id === item.id) ?? refreshed[0];
     if (!match) throw new Error("تعذر العثور على المنتج بعد التحديث.");
     return match;
@@ -109,8 +118,8 @@ export async function updateMenuItem(item: UpdateMenuItem): Promise<MenuItem> {
   return mapMenuItem(data);
 }
 
-export async function deleteMenuItem(id: string): Promise<void> {
-  if (isPlatformSettingsClientMode()) {
+export async function deleteMenuItem(id: string, context?: MenuContext): Promise<void> {
+  if (shouldPublishToPlatform(context)) {
     await callPlatformMenu({ action: "delete", id });
     return;
   }
@@ -119,8 +128,8 @@ export async function deleteMenuItem(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function toggleMenuAvailability(id: string, available: boolean): Promise<void> {
-  if (isPlatformSettingsClientMode()) {
+export async function toggleMenuAvailability(id: string, available: boolean, context?: MenuContext): Promise<void> {
+  if (shouldPublishToPlatform(context)) {
     await callPlatformMenu({ action: "toggle", id, available });
     return;
   }
