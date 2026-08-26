@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Home from "@/app/page";
 
 export default function PlatformPreviewPage() {
+  const router = useRouter();
+
   useEffect(() => {
     document.title = "معاينة المنصة - الإدارة العامة";
-  }, []);
+    if (window.location.search !== "?platformPreview=1") {
+      router.replace("/platform-preview?platformPreview=1");
+    }
+  }, [router]);
 
   return (
     <>
