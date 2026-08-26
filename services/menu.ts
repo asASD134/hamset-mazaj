@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase-browser";
-import { getClientCafeId, isPlatformSettingsClientMode } from "@/lib/cafe-context-client";
+import { getClientCafeId } from "@/lib/cafe-context-client";
 import { MenuItem, CreateMenuItem, UpdateMenuItem } from "@/types/menu";
 
 const TABLE_NAME = "menu";
@@ -21,8 +21,10 @@ function mapMenuItem(item: any): MenuItem {
   };
 }
 
+// IMPORTANT: only an explicit platform context may publish changes globally.
+// A normal cafe edit must always stay inside its own cafe_id.
 function shouldPublishToPlatform(context?: MenuContext) {
-  return context?.platform === true || isPlatformSettingsClientMode();
+  return context?.platform === true;
 }
 
 async function callPlatformMenu(payload: Record<string, unknown>) {
