@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase-browser";
-import { getClientCafeId } from "@/lib/cafe-context-client";
+import { getClientCafeId, isPlatformSettingsClientMode } from "@/lib/cafe-context-client";
 import { MenuItem, CreateMenuItem, UpdateMenuItem } from "@/types/menu";
 
 const TABLE_NAME = "menu";
@@ -17,6 +17,16 @@ function mapMenuItem(item: any): MenuItem {
     sort_order: Number(item.sort_order ?? 0),
     created_at: item.created_at ?? "",
   };
+}
+
+async function callPlatformMenu(payload: Record<string, unknown>) {
+  const response = await fetch("/api/admin/platform-settings/apply-menu", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result?.error || "تعذر نشر تحديث المنيو.");
 }
 
 export async function getMenuItems(): Promise<MenuItem[]> {
@@ -42,6 +52,13 @@ export async function createMenuItem(item: CreateMenuItem): Promise<MenuItem> {
   if (!name) throw new Error("اسم المنتج مطلوب");
   if (!item.category) throw new Error("يجب اختيار التصنيف");
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
+
+  if (isPlatformSettingsClientMode()) {
+    await callPlatformMenu({ action: "create", item: { ...item, name, description } });
+    const items = await getMenuItems();
+    return items[items.length - 1];
+  }
+
   const cafeId = await getClientCafeId();
   const { data, error } = await supabase.from(TABLE_NAME).insert({
     cafe_id: cafeId,
@@ -66,6 +83,15 @@ export async function updateMenuItem(item: UpdateMenuItem): Promise<MenuItem> {
   if (!name) throw new Error("اسم المنتج مطلوب");
   if (!item.category) throw new Error("يجب اختيار التصنيف");
   if (!Number.isFinite(item.price) || item.price < 0) throw new Error("السعر غير صحيح");
+
+  if (isPlatformSettingsClientMode()) {
+    await callPlatformMenu({ action: "update", id: item.id, item: { ...item, name, description } });
+    const refreshed = await getMenuItems();
+    const match = refreshed.find((entry) => entry.id === item.id) ?? refreshed[0];
+    if (!match) throw new Error("تعذر العثور على المنتج بعد التحديث.");
+    return match;
+  }
+
   const cafeId = await getClientCafeId();
   const { data, error } = await supabase.from(TABLE_NAME).update({
     category_id: item.category,
@@ -84,12 +110,20 @@ export async function updateMenuItem(item: UpdateMenuItem): Promise<MenuItem> {
 }
 
 export async function deleteMenuItem(id: string): Promise<void> {
+  if (isPlatformSettingsClientMode()) {
+    await callPlatformMenu({ action: "delete", id });
+    return;
+  }
   const cafeId = await getClientCafeId();
   const { error } = await supabase.from(TABLE_NAME).delete().eq("id", id).eq("cafe_id", cafeId);
   if (error) throw error;
 }
 
 export async function toggleMenuAvailability(id: string, available: boolean): Promise<void> {
+  if (isPlatformSettingsClientMode()) {
+    await callPlatformMenu({ action: "toggle", id, available });
+    return;
+  }
   const cafeId = await getClientCafeId();
   const { error } = await supabase.from(TABLE_NAME).update({ is_available: available }).eq("id", id).eq("cafe_id", cafeId);
   if (error) throw error;
