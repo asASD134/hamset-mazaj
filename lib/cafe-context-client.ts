@@ -64,8 +64,10 @@ function getRequestedContext() {
   if (isPlatformSettingsMode()) { writeStorage(PLATFORM_TEMPLATE_SLUG); return PLATFORM_TEMPLATE_SLUG; }
   if (isPlatformPreviewMode()) return PLATFORM_TEMPLATE_SLUG;
   if (isAdminPath()) {
-    const activeCafe = readCookie(COOKIE_NAME) || readStorage();
-    if (activeCafe && activeCafe !== PLATFORM_TEMPLATE_SLUG) return activeCafe;
+    const cookieCafe = readCookie(COOKIE_NAME);
+    const storedCafe = readStorage();
+    if (cookieCafe && cookieCafe !== PLATFORM_TEMPLATE_SLUG) return cookieCafe;
+    if (storedCafe && storedCafe !== PLATFORM_TEMPLATE_SLUG) return storedCafe;
     return DEFAULT_CAFE_SLUG;
   }
   return fromUrl === PLATFORM_TEMPLATE_SLUG ? DEFAULT_CAFE_SLUG : fromUrl || DEFAULT_CAFE_SLUG;
