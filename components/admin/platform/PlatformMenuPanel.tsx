@@ -20,8 +20,10 @@ const emptyForm = {
 
 type FormState = typeof emptyForm;
 
+const PLATFORM_MENU_CONTEXT = { platform: true } as const;
+
 export default function PlatformMenuPanel() {
-  const { items, loading, error, add, update, remove, toggle, refresh } = useMenu();
+  const { items, loading, error, add, update, remove, toggle, refresh } = useMenu(PLATFORM_MENU_CONTEXT);
   const { categories } = useCategories();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<MenuItem | null>(null);
@@ -91,10 +93,10 @@ export default function PlatformMenuPanel() {
 
       if (editing) {
         await update({ ...payload, id: editing.id });
-        setMessage("تم تحديث المنتج بنجاح.");
+        setMessage("تم تحديث المنتج ونشره على المقاهي بنجاح.");
       } else {
         await add(payload);
-        setMessage("تمت إضافة المنتج بنجاح.");
+        setMessage("تمت إضافة المنتج ونشره على المقاهي بنجاح.");
       }
       closeEditor();
     } catch (err) {
@@ -105,10 +107,10 @@ export default function PlatformMenuPanel() {
   }
 
   async function deleteItem(item: MenuItem) {
-    if (!window.confirm(`هل تريد حذف المنتج "${item.name}"؟`)) return;
+    if (!window.confirm(`هل تريد حذف المنتج "${item.name}" من جميع المقاهي؟`)) return;
     try {
       await remove(item.id);
-      setMessage("تم حذف المنتج.");
+      setMessage("تم حذف المنتج من المقاهي.");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "تعذر حذف المنتج.");
     }
@@ -119,7 +121,7 @@ export default function PlatformMenuPanel() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h3 className="text-2xl font-black text-yellow-400">إدارة المنيو والمنتجات</h3>
-          <p className="mt-1 text-sm text-zinc-500">كل شيء هنا بدون مغادرة صفحة الإدارة العامة.</p>
+          <p className="mt-1 text-sm text-zinc-500">هذه اللوحة تعمل دائمًا في وضع الإدارة العامة وتنشر تغييرات المنيو للمقاهي.</p>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={startNew} className="inline-flex items-center gap-2 rounded-xl bg-yellow-500 px-4 py-3 font-black text-black hover:bg-yellow-400">
@@ -140,7 +142,7 @@ export default function PlatformMenuPanel() {
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h4 className="text-xl font-black">{editing ? "تعديل المنتج" : "إضافة منتج جديد"}</h4>
-              <p className="mt-1 text-xs text-zinc-500">كل الحقول أمامك داخل نفس الصفحة.</p>
+              <p className="mt-1 text-xs text-zinc-500">التعديل من هنا يُنشر للمقاهي كلها.</p>
             </div>
             <button type="button" onClick={closeEditor} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-zinc-400 hover:text-white"><X size={18} /></button>
           </div>
@@ -157,7 +159,7 @@ export default function PlatformMenuPanel() {
             <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3"><input type="checkbox" checked={form.featured} onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))} /> <Star size={16} className="text-yellow-400" /> منتج مميز</label>
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-2 rounded-xl bg-yellow-500 px-5 py-3 font-black text-black hover:bg-yellow-400 disabled:opacity-60"><Save size={18} /> {saving ? "جارٍ الحفظ..." : "حفظ"}</button>
+            <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-2 rounded-xl bg-yellow-500 px-5 py-3 font-black text-black hover:bg-yellow-400 disabled:opacity-60"><Save size={18} /> {saving ? "جارٍ الحفظ..." : "حفظ ونشر"}</button>
             <button type="button" onClick={closeEditor} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-zinc-300">إلغاء</button>
           </div>
         </div>
@@ -184,8 +186,8 @@ export default function PlatformMenuPanel() {
                 <p className="mt-3 line-clamp-2 min-h-10 text-sm text-zinc-500">{item.description || "بدون وصف"}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => startEdit(item)} className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 font-bold text-blue-300"><Pencil size={15} className="inline ml-1" /> تعديل</button>
-                  <button type="button" onClick={() => void toggle(item.id, !item.available)} className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-3 py-2 font-bold text-orange-300">{item.available ? "إخفاء" : "إظهار"}</button>
-                  <button type="button" onClick={() => void deleteItem(item)} className="col-span-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 font-bold text-red-300"><Trash2 size={15} className="inline ml-1" /> حذف</button>
+                  <button type="button" onClick={() => void toggle(item.id, !item.available)} className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-3 py-2 font-bold text-orange-300">{item.available ? "إخفاء ونشر" : "إظهار ونشر"}</button>
+                  <button type="button" onClick={() => void deleteItem(item)} className="col-span-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 font-bold text-red-300"><Trash2 size={15} className="inline ml-1" /> حذف من المقاهي</button>
                 </div>
               </div>
             </article>
