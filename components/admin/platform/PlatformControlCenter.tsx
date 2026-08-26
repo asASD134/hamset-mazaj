@@ -22,7 +22,7 @@ import GalleryHomePage from "@/app/admin/gallery-home/page";
 import FootballCompetitionsPage from "@/app/admin/football-competitions/page";
 import FootballMatchesPage from "@/app/admin/football-matches/page";
 import TableManager from "@/components/admin/tables/TableManager";
-import MenuPanel from "@/components/admin/platform/PlatformMenuPanel";
+import PlatformMenuPanel from "@/components/admin/platform/PlatformMenuPanelV2";
 import PlatformMenuDesignPanel from "@/components/admin/platform/PlatformMenuDesignPanel";
 
 type SectionProps = { id: string; icon: React.ReactNode; title: string; description: string; children: React.ReactNode; defaultOpen?: boolean };
@@ -69,7 +69,7 @@ export default function PlatformControlCenter() {
         <div className="space-y-6">
           <Section id="site-settings" icon={<Settings2 size={24} />} title="إعدادات الموقع الكاملة" description="الصفحة الرئيسية، Hero، الألوان، الخطوط، الخلفيات، الأقسام، الصور والهوية البصرية." defaultOpen><HomeSettingsPanel /></Section>
           <Section id="contact" icon={<MapPin size={24} />} title="التواصل والخريطة" description="كل بيانات التواصل الفعلية في مكان واحد."><ContactSettingsPanel /></Section>
-          <Section id="menu" icon={<Menu size={24} />} title="المنيو والمنتجات" description="هنا تتحكم في شكل المنيو وتصميم بطاقات المنتجات، ثم تدير المنتجات نفسها."><PlatformMenuDesignPanel /><MenuPanel /></Section>
+          <Section id="menu" icon={<Menu size={24} />} title="المنيو والمنتجات" description="هنا تتحكم في شكل المنيو وتصميم بطاقات المنتجات، ثم تدير المنتجات نفسها."><PlatformMenuDesignPanel /><PlatformMenuPanel /></Section>
           <Section id="categories" icon={<Store size={24} />} title="تصنيفات المنيو" description="إضافة وتعديل وحذف وترتيب التصنيفات."><CategoriesPage /></Section>
           <Section id="gallery" icon={<ImageIcon size={24} />} title="الصور والمعرض" description="اختيار صور الصفحة الرئيسية وإدارة ظهور الصور."><GalleryHomePage /></Section>
           <Section id="tables" icon={<QrCode size={24} />} title="الطاولات و QR" description="الطاولات والباركود وروابط الطلب المرتبطة بكل طاولة."><TableManager /></Section>
