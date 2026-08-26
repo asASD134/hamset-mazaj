@@ -18,12 +18,12 @@ export default function PlatformSettingsPage() {
         </header>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <Link href="/admin/settings?platform=1" className="rounded-[2rem] border border-white/10 bg-[#121212] p-6 transition hover:border-yellow-500/40">
+          <Link href="/admin/platform?platform=1" className="rounded-[2rem] border border-yellow-500/30 bg-yellow-500/10 p-6 transition hover:bg-yellow-500/15">
             <div className="flex items-center gap-3 text-yellow-400">
               <Settings2 size={24} />
-              <h2 className="text-xl font-black">الإعدادات الكاملة</h2>
+              <h2 className="text-xl font-black">الإعدادات الكاملة القابلة للتحرير</h2>
             </div>
-            <p className="mt-3 text-sm leading-7 text-zinc-500">نفس لوحة إعدادات الموقع الكاملة، للمظهر والأقسام والوظائف والتحديثات.</p>
+            <p className="mt-3 text-sm leading-7 text-zinc-400">افتح النسخة الرئيسية الكاملة من إعدادات الموقع. بيانات التواصل أيضًا تحتوي على حقول كتابة فعلية وليست مجرد إظهار وإخفاء.</p>
           </Link>
 
           <Link href="/admin/settings/contact?platform=1" className="rounded-[2rem] border border-white/10 bg-[#121212] p-6 transition hover:border-yellow-500/40">
