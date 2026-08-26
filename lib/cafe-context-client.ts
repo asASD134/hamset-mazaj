@@ -40,8 +40,7 @@ function isPlatformSettingsMode() {
   if (!isAdminPath()) return false;
   const explicitCafe = getUrlCafeContext();
   if (explicitCafe) return explicitCafe === PLATFORM_TEMPLATE_SLUG;
-  if (getQueryParam("platform") === "1") return true;
-  return readStorage() === PLATFORM_TEMPLATE_SLUG;
+  return getQueryParam("platform") === "1";
 }
 
 function isPlatformPreviewMode() {
@@ -64,7 +63,11 @@ function getRequestedContext() {
   if (isAdminPath() && fromUrl) { writeStorage(fromUrl); return fromUrl; }
   if (isPlatformSettingsMode()) { writeStorage(PLATFORM_TEMPLATE_SLUG); return PLATFORM_TEMPLATE_SLUG; }
   if (isPlatformPreviewMode()) return PLATFORM_TEMPLATE_SLUG;
-  if (isAdminPath()) return readStorage() || readCookie(COOKIE_NAME) || DEFAULT_CAFE_SLUG;
+  if (isAdminPath()) {
+    const activeCafe = readCookie(COOKIE_NAME) || readStorage();
+    if (activeCafe && activeCafe !== PLATFORM_TEMPLATE_SLUG) return activeCafe;
+    return DEFAULT_CAFE_SLUG;
+  }
   return fromUrl === PLATFORM_TEMPLATE_SLUG ? DEFAULT_CAFE_SLUG : fromUrl || DEFAULT_CAFE_SLUG;
 }
 
