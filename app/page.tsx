@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import Link from "next/link";
 
@@ -22,11 +21,9 @@ export default function Home() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
 
-    // The admin cafe picker stores the currently selected cafe here.
-    // When the preview link opens the homepage without a query string,
-    // carry that selected cafe into the public route so previewing from
-    // a cafe's settings always shows that cafe rather than the default cafe.
-    if (!searchParams.get("cafe")) {
+    // Keep platform preview on the platform template. Only inherit the
+    // locally selected cafe for ordinary public homepage visits.
+    if (!searchParams.get("cafe") && searchParams.get("platformPreview") !== "1") {
       const activeCafe = window.localStorage.getItem("active_cafe_context");
 
       if (activeCafe) {
