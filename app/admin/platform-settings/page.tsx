@@ -1,29 +1,40 @@
 import Link from "next/link";
+import { Globe2, Phone, Settings2 } from "lucide-react";
 
 export default function PlatformSettingsPage() {
   return (
-    <main dir="rtl" className="min-h-screen bg-[#050505] p-6 text-white">
-      <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/10 bg-[#121212] p-7">
-        <h1 className="text-3xl font-black text-yellow-400">إدارة المنصة العامة</h1>
-        <p className="mt-3 leading-8 text-zinc-400">
-          الإدارة العامة هي المرجع الرئيسي لنظام الموقع. ابدأ بتوحيد النظام من همسة مزاج، ثم استخدم صفحة الإعدادات الكاملة لأي تطوير جديد.
-        </p>
+    <main className="min-h-screen bg-[#050505] p-6 text-white md:p-10" dir="rtl">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <header className="rounded-[2rem] border border-yellow-500/20 bg-gradient-to-br from-[#171207] via-[#0c0d12] to-[#07080b] p-7 shadow-2xl">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500 text-black">
+              <Settings2 size={28} />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-yellow-400">إدارة المنصة العامة</h1>
+              <p className="mt-2 text-zinc-400">كل إعدادات التحديث العام في مكان واحد.</p>
+            </div>
+          </div>
+        </header>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
-          <Link
-            href="/admin/platform-settings/sync-from-hamset"
-            className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-5 transition hover:bg-yellow-500/20"
-          >
-            <h2 className="text-xl font-black text-yellow-300">توحيد النظام</h2>
-            <p className="mt-2 text-sm leading-7 text-zinc-400">اجعل همسة مزاج المرجع الأساسي مرة واحدة لتوحيد البنية والميزات في جميع المواقع.</p>
+        <div className="grid gap-5 md:grid-cols-2">
+          <Link href="/admin/settings?platform=1" className="rounded-[2rem] border border-white/10 bg-[#121212] p-6 transition hover:border-yellow-500/40">
+            <div className="flex items-center gap-3 text-yellow-400">
+              <Settings2 size={24} />
+              <h2 className="text-xl font-black">الإعدادات الكاملة</h2>
+            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-500">نفس لوحة إعدادات الموقع الكاملة، للمظهر والأقسام والوظائف والتحديثات.</p>
           </Link>
 
-          <Link
-            href="/admin/settings?platform=1"
-            className="rounded-2xl border border-white/10 bg-black/20 p-5 transition hover:border-yellow-500/30"
-          >
-            <h2 className="text-xl font-black text-white">الإعدادات الكاملة</h2>
-            <p className="mt-2 text-sm leading-7 text-zinc-400">افتح نفس صفحة إعدادات الموقع الكاملة لتعديل النظام العام ومحتوى المرجع.</p>
+          <Link href="/admin/settings/contact?platform=1" className="rounded-[2rem] border border-white/10 bg-[#121212] p-6 transition hover:border-yellow-500/40">
+            <div className="flex items-center gap-3 text-yellow-400">
+              <Phone size={24} />
+              <h2 className="text-xl font-black">بيانات التواصل والروابط</h2>
+            </div>
+            <p className="mt-3 text-sm leading-7 text-zinc-500">الهاتف، واتساب، البريد، العنوان، الخريطة، أوقات العمل، وإضافة وتعديل مواقع التواصل.</p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-black text-black">
+              <Globe2 size={16} /> فتح الإعدادات
+            </div>
           </Link>
         </div>
       </div>
