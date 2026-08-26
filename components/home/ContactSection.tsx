@@ -1,6 +1,6 @@
 "use client";
 
-import { Instagram, MessageCircle } from "lucide-react";
+import { Globe2, MessageCircle } from "lucide-react";
 
 import { useCafeSettings } from "@/context/CafeSettingsContext";
 import { useSiteControl } from "@/context/SiteControlContext";
@@ -21,7 +21,7 @@ export default function ContactSection() {
       id: "instagram",
       name: "Instagram",
       url: settings.instagram_handle,
-      icon: <Instagram size={18} />,
+      icon: <Globe2 size={18} />,
     });
   }
 
